@@ -97,32 +97,6 @@ function buildChordFromDegree(scale, degree, chordType = 'triad') {
 }
 
 /**
- * Applies spread voicing to a chord
- * @param {number[]} chord - Chord notes
- * @returns {number[]} Voiced chord notes
- */
-function applySpreadVoicing(chord) {
-  if (chord.length === 3) {
-    // Triad: Root one octave lower, Third in middle, Fifth one octave higher
-    return [
-      chord[0] - 12,      // Root (Bass)
-      chord[1],           // Third
-      chord[2] + 12       // Fifth (Top)
-    ];
-  } else if (chord.length === 4) {
-    // Seventh: Root lower, Third + Fifth in middle, Seventh higher
-    return [
-      chord[0] - 12,      // Root (Bass)
-      chord[1],           // Third
-      chord[2],           // Fifth
-      chord[3] + 12       // Seventh (Top)
-    ];
-  }
-
-  return chord;
-}
-
-/**
  * Automatically selects appropriate chord extension for a given degree and position
  * Uses musical rules to create interesting and varied progressions
  * @param {number} degree - Scale degree (1-7)
@@ -410,6 +384,5 @@ function generateChords(params) {
 module.exports = {
   generateChords,
   buildChordFromDegree,
-  applySpreadVoicing,
   getChordName
 };

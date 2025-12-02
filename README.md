@@ -24,7 +24,6 @@ Eine Web-Anwendung zur algorithmischen Generierung von Akkordprogressionen, die 
 ### Bass & Voicing
 - **Bass-Grundton Option**: Fügt Grundton 1-2 Oktaven unter dem Akkord hinzu
 - **Oktav-Auswahl**: Wählbar zwischen -1 oder -2 Oktaven
-- **Spread Voicing**: Akkorde über mehrere Oktaven verteilt
 
 ### Integration & Workflow
 - **Direkte Ableton-Integration**: MIDI-Clips werden automatisch in Session View erstellt
