@@ -29,3 +29,7 @@
 - Happy ↔ Sad
 - Dark ↔ Calm
 - Jazzy ↔ Tense
+
+
+# Version 1.11
+- es sollen jetzt direkt im track rechts daneben clips erstellt werden, und zwar nur mit den jeweiligen bass-grundtönen der beiden akkord-folgen im ersten track. also erster slot im zweiten track: bass-grundtöne der ersten akkord-folge; zweiter slot im zweiten track: bass-grundtöne der zweiten akkord-folge. die bass-grundtöne sollen diesmal nicht dem gewählten rhythmischen muster folgen, sondern immer durchgezogene töne sein (so lange gehalten, wie der bass-ton unverändert bleibt).

@@ -85,15 +85,17 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // Generate dual chord progressions
-    console.log('Generating dual chord progressions...');
+    // Generate dual chord progressions with bass clips
+    console.log('Generating dual chord progressions with bass clips...');
     const dualClipData = generateDualClips(params);
 
     console.log(`Generated clip 1: ${dualClipData.clip1.notes.length} notes`);
     console.log(`Generated clip 2: ${dualClipData.clip2.notes.length} notes`);
+    console.log(`Generated bass 1: ${dualClipData.bass1.notes.length} notes`);
+    console.log(`Generated bass 2: ${dualClipData.bass2.notes.length} notes`);
 
-    // Send both clips to Ableton via Python
-    console.log('Sending both clips to Ableton...');
+    // Send all 4 clips to Ableton via Python
+    console.log('Sending 4 clips to Ableton...');
     const result = await sendToAbleton({
       clip1: {
         notes: dualClipData.clip1.notes,
@@ -106,13 +108,25 @@ router.post('/generate', async (req, res) => {
         track: parseInt(params.targetTrack),
         slot: parseInt(params.targetSlot) + 1,  // Next slot below
         clipLength: parseInt(params.bars)
+      },
+      bass1: {
+        notes: dualClipData.bass1.notes,
+        track: parseInt(params.targetTrack) + 1,  // Track to the right
+        slot: parseInt(params.targetSlot),
+        clipLength: parseInt(params.bars)
+      },
+      bass2: {
+        notes: dualClipData.bass2.notes,
+        track: parseInt(params.targetTrack) + 1,  // Track to the right
+        slot: parseInt(params.targetSlot) + 1,  // Next slot below
+        clipLength: parseInt(params.bars)
       }
     });
 
     if (result.success) {
       res.json({
         success: true,
-        message: 'Dual clips created in Ableton',
+        message: '4 clips created in Ableton (2 chord + 2 bass)',
         data: {
           clip1: {
             metadata: dualClipData.clip1.metadata,
@@ -121,6 +135,14 @@ router.post('/generate', async (req, res) => {
           clip2: {
             metadata: dualClipData.clip2.metadata,
             noteCount: dualClipData.clip2.notes.length
+          },
+          bass1: {
+            metadata: dualClipData.bass1.metadata,
+            noteCount: dualClipData.bass1.notes.length
+          },
+          bass2: {
+            metadata: dualClipData.bass2.metadata,
+            noteCount: dualClipData.bass2.notes.length
           }
         }
       });

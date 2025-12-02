@@ -317,6 +317,59 @@ function getChordName(scale, degree) {
 }
 
 /**
+ * Generates sustained bass notes from a chord progression
+ * Bass notes are held for the full duration of each chord (no rhythmic pattern)
+ * @param {Object[]} chords - Array of chord objects with notes and durations
+ * @param {number} bars - Total number of bars
+ * @param {boolean} irregularChanges - Whether chords have irregular durations
+ * @param {number} bassOctave - Octave offset for bass (1-3)
+ * @returns {Object[]} Array of sustained bass MIDI notes
+ */
+function generateSustainedBass(chords, bars, irregularChanges = false, bassOctave = 2) {
+  const bassNotes = [];
+
+  if (irregularChanges) {
+    // Handle irregular chord changes - each chord has a durationInBeats property
+    let currentBeat = 0;
+
+    chords.forEach(chord => {
+      const chordDuration = chord.durationInBeats || 4; // Default to 1 bar if not set
+
+      if (chord.notes.length > 0) {
+        const rootNote = chord.notes[0]; // First note is the root
+        const bassNote = rootNote - (12 * bassOctave);
+
+        bassNotes.push({
+          pitch: bassNote,
+          start_time: currentBeat,
+          duration: chordDuration, // Hold for full chord duration
+          velocity: 90 // Consistent velocity for sustained bass
+        });
+      }
+
+      currentBeat += chordDuration;
+    });
+  } else {
+    // Regular chord changes - one chord per bar (4 beats)
+    chords.forEach((chord, barIndex) => {
+      if (chord.notes.length > 0) {
+        const rootNote = chord.notes[0]; // First note is the root
+        const bassNote = rootNote - (12 * bassOctave);
+
+        bassNotes.push({
+          pitch: bassNote,
+          start_time: barIndex * 4.0, // 4 beats per bar
+          duration: 4.0, // Hold for full bar
+          velocity: 90 // Consistent velocity for sustained bass
+        });
+      }
+    });
+  }
+
+  return bassNotes;
+}
+
+/**
  * Main chord generation function
  * @param {Object} params - Generation parameters
  * @returns {Object} Generated chord data with notes and metadata
@@ -381,22 +434,24 @@ function generateChords(params) {
 }
 
 /**
- * Generates two complementary chord progressions:
+ * Generates two complementary chord progressions with bass clips:
  * 1. Original progression with original parameters
  * 2. Complementary progression in relative key with complementary mood
+ * 3. Sustained bass from first progression
+ * 4. Sustained bass from second progression
  *
  * @param {Object} params - Generation parameters
- * @returns {Object} { clip1: {...}, clip2: {...} }
+ * @returns {Object} { clip1: {...}, clip2: {...}, bass1: {...}, bass2: {...} }
  */
 function generateDualClips(params) {
-  // Generate first clip with original parameters
+  // Generate first clip with original parameters (including bass if requested)
   const clip1 = generateChords(params);
 
   // Calculate relative key and complementary mood for second clip
   const relativeKey = getRelativeKey(params.key, params.scale);
   const complementaryMood = getComplementaryMood(params.mood);
 
-  // Generate second clip with complementary parameters
+  // Generate second clip with complementary parameters (also including bass if requested)
   const clip2Params = {
     ...params,
     key: relativeKey.key,
@@ -405,6 +460,52 @@ function generateDualClips(params) {
   };
 
   const clip2 = generateChords(clip2Params);
+
+  // Generate separate sustained bass clips
+  // We need to regenerate the chord progressions to get the chord objects with durations
+  // Use the same logic as generateChords but capture the chords before rhythm is applied
+
+  // For clip1 bass
+  const rootMidi1 = NOTE_TO_MIDI[params.key];
+  const scale1 = buildScale(rootMidi1, params.scale);
+  const progressionDegrees1 = selectProgression(params.mood);
+  const fullProgression1 = expandProgression(progressionDegrees1, params.bars, params.mood);
+  const chords1 = fullProgression1.map((degree, index) => {
+    const chordType = selectChordExtension(degree, index, fullProgression1.length, params.mood);
+    return {
+      degree,
+      notes: buildChordFromDegree(scale1, degree, chordType),
+      name: getChordName(scale1, degree),
+      extension: chordType
+    };
+  });
+  let finalChords1 = params.voiceLeading ? applyVoiceLeading(chords1) : chords1;
+  if (params.irregularChanges) {
+    finalChords1 = createIrregularChordChanges(finalChords1, params.bars);
+  }
+
+  const bassNotes1 = generateSustainedBass(finalChords1, params.bars, params.irregularChanges, params.bassOctave || 2);
+
+  // For clip2 bass
+  const rootMidi2 = NOTE_TO_MIDI[relativeKey.key];
+  const scale2 = buildScale(rootMidi2, relativeKey.scale);
+  const progressionDegrees2 = selectProgression(complementaryMood);
+  const fullProgression2 = expandProgression(progressionDegrees2, params.bars, complementaryMood);
+  const chords2 = fullProgression2.map((degree, index) => {
+    const chordType = selectChordExtension(degree, index, fullProgression2.length, complementaryMood);
+    return {
+      degree,
+      notes: buildChordFromDegree(scale2, degree, chordType),
+      name: getChordName(scale2, degree),
+      extension: chordType
+    };
+  });
+  let finalChords2 = params.voiceLeading ? applyVoiceLeading(chords2) : chords2;
+  if (params.irregularChanges) {
+    finalChords2 = createIrregularChordChanges(finalChords2, params.bars);
+  }
+
+  const bassNotes2 = generateSustainedBass(finalChords2, params.bars, params.irregularChanges, params.bassOctave || 2);
 
   return {
     clip1: {
@@ -422,6 +523,28 @@ function generateDualClips(params) {
         originalKey: params.key,
         originalScale: params.scale,
         originalMood: params.mood
+      }
+    },
+    bass1: {
+      notes: bassNotes1,
+      metadata: {
+        key: params.key,
+        scale: params.scale,
+        mood: params.mood,
+        clipType: 'sustained_bass',
+        bars: params.bars,
+        bassOctave: params.bassOctave || 2
+      }
+    },
+    bass2: {
+      notes: bassNotes2,
+      metadata: {
+        key: relativeKey.key,
+        scale: relativeKey.scale,
+        mood: complementaryMood,
+        clipType: 'sustained_bass',
+        bars: params.bars,
+        bassOctave: params.bassOctave || 2
       }
     }
   };
