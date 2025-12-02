@@ -51,6 +51,18 @@ function validateParams(params) {
     errors.push('Invalid voiceLeading. Must be a boolean');
   }
 
+  if (params.irregularChanges !== undefined && typeof params.irregularChanges !== 'boolean') {
+    errors.push('Invalid irregularChanges. Must be a boolean');
+  }
+
+  if (params.addBass !== undefined && typeof params.addBass !== 'boolean') {
+    errors.push('Invalid addBass. Must be a boolean');
+  }
+
+  if (params.bassOctave !== undefined && (params.bassOctave < 1 || params.bassOctave > 3)) {
+    errors.push('Invalid bassOctave. Must be between 1 and 3');
+  }
+
   return {
     valid: errors.length === 0,
     errors: errors

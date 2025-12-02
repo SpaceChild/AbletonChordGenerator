@@ -7,28 +7,59 @@ const { applyRhythm } = require('./rhythmGenerator');
  * Builds a chord from a scale degree
  * @param {number[]} scale - Scale notes (MIDI numbers)
  * @param {number} degree - Scale degree (1-7)
- * @param {string} chordType - 'triad', 'seventh', 'ninth', 'eleventh', or 'thirteenth'
+ * @param {string} chordType - Chord type: 'triad', 'seventh', 'ninth', 'eleventh', 'thirteenth',
+ *                              'diminished', 'augmented', 'maj7', 'min7', 'sus2', 'sus4'
  * @returns {number[]} Array of MIDI notes forming the chord
  */
 function buildChordFromDegree(scale, degree, chordType = 'triad') {
-  // Scale has 8 notes (indices 0-7), but we need to wrap around for higher chord tones
-  // and potentially jump octaves
-  const scaleLength = 7; // We use 7-note scale (ignore octave for wrapping)
-
+  const scaleLength = 7;
   const rootIndex = (degree - 1) % scaleLength;
-  const thirdIndex = (degree - 1 + 2) % scaleLength;  // Skip one note (Terz)
-  const fifthIndex = (degree - 1 + 4) % scaleLength;  // Skip three notes (Quinte)
-
   let root = scale[rootIndex];
+
+  // Special chord types with chromatic alterations
+  if (chordType === 'diminished') {
+    // Diminished: root + minor 3rd + diminished 5th + diminished 7th
+    return [root, root + 3, root + 6, root + 9];
+  }
+
+  if (chordType === 'augmented') {
+    // Augmented: root + major 3rd + augmented 5th
+    return [root, root + 4, root + 8];
+  }
+
+  if (chordType === 'maj7') {
+    // Major 7th: root + major 3rd + perfect 5th + major 7th
+    return [root, root + 4, root + 7, root + 11];
+  }
+
+  if (chordType === 'min7') {
+    // Minor 7th: root + minor 3rd + perfect 5th + minor 7th
+    return [root, root + 3, root + 7, root + 10];
+  }
+
+  if (chordType === 'sus2') {
+    // Suspended 2nd: root + major 2nd + perfect 5th (no 3rd)
+    return [root, root + 2, root + 7];
+  }
+
+  if (chordType === 'sus4') {
+    // Suspended 4th: root + perfect 4th + perfect 5th (no 3rd)
+    return [root, root + 5, root + 7];
+  }
+
+  // Standard diatonic chord building from scale
+  const thirdIndex = (degree - 1 + 2) % scaleLength;
+  const fifthIndex = (degree - 1 + 4) % scaleLength;
+
   let third = scale[thirdIndex];
   let fifth = scale[fifthIndex];
 
   // If third or fifth wrapped around, add octave
   if (thirdIndex < rootIndex) {
-    third += 12;  // Add one octave
+    third += 12;
   }
   if (fifthIndex < rootIndex) {
-    fifth += 12;  // Add one octave
+    fifth += 12;
   }
 
   // Build base triad
@@ -45,23 +76,20 @@ function buildChordFromDegree(scale, degree, chordType = 'triad') {
   }
 
   if (chordType === 'ninth' || chordType === 'eleventh' || chordType === 'thirteenth') {
-    // 9th = 2nd + octave (scale degree + 1)
     const ninthIndex = (degree - 1 + 1) % scaleLength;
-    let ninth = scale[ninthIndex] + 12;  // Always one octave up
+    let ninth = scale[ninthIndex] + 12;
     chord.push(ninth);
   }
 
   if (chordType === 'eleventh' || chordType === 'thirteenth') {
-    // 11th = 4th + octave (scale degree + 3)
     const eleventhIndex = (degree - 1 + 3) % scaleLength;
-    let eleventh = scale[eleventhIndex] + 12;  // Always one octave up
+    let eleventh = scale[eleventhIndex] + 12;
     chord.push(eleventh);
   }
 
   if (chordType === 'thirteenth') {
-    // 13th = 6th + octave (scale degree + 5)
     const thirteenthIndex = (degree - 1 + 5) % scaleLength;
-    let thirteenth = scale[thirteenthIndex] + 12;  // Always one octave up
+    let thirteenth = scale[thirteenthIndex] + 12;
     chord.push(thirteenth);
   }
 
@@ -106,47 +134,67 @@ function applySpreadVoicing(chord) {
 function selectChordExtension(degree, position, totalChords, mood) {
   // Final chord tends to be simpler (triad or seventh)
   if (position === totalChords - 1) {
-    return Math.random() < 0.7 ? 'triad' : 'seventh';
+    const options = ['triad', 'seventh', 'maj7'];
+    return options[Math.floor(Math.random() * options.length)];
   }
 
-  // V chord (5th degree) sounds great with 7th
+  // V chord (5th degree) sounds great with 7th or dominant variations
   if (degree === 5) {
-    return Math.random() < 0.6 ? 'seventh' : 'ninth';
+    const options = ['seventh', 'ninth', 'sus4'];
+    return options[Math.floor(Math.random() * options.length)];
   }
 
-  // ii chord (2nd degree) in jazzy moods gets extensions
-  if (degree === 2 && mood === 'jazzy') {
-    const extensions = ['seventh', 'ninth', 'eleventh'];
-    return extensions[Math.floor(Math.random() * extensions.length)];
+  // ii chord (2nd degree) - often gets interesting extensions
+  if (degree === 2) {
+    if (mood === 'jazzy') {
+      const options = ['seventh', 'ninth', 'eleventh', 'min7'];
+      return options[Math.floor(Math.random() * options.length)];
+    }
+    if (mood === 'dark' || mood === 'tense') {
+      const options = ['diminished', 'min7', 'seventh'];
+      return options[Math.floor(Math.random() * options.length)];
+    }
   }
 
   // I chord (tonic) can vary
   if (degree === 1) {
-    const weights = [0.4, 0.3, 0.2, 0.1]; // triad, seventh, ninth, eleventh
+    if (mood === 'jazzy') {
+      const options = ['maj7', 'ninth', 'seventh', 'triad'];
+      return options[Math.floor(Math.random() * options.length)];
+    }
+    const options = ['triad', 'seventh', 'maj7', 'sus2'];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+
+  // III chord - can be augmented in some contexts
+  if (degree === 3 && (mood === 'tense' || mood === 'dark')) {
     const rand = Math.random();
-    if (rand < weights[0]) return 'triad';
-    if (rand < weights[0] + weights[1]) return 'seventh';
-    if (rand < weights[0] + weights[1] + weights[2]) return 'ninth';
-    return 'eleventh';
+    if (rand < 0.3) return 'augmented';
+    if (rand < 0.6) return 'seventh';
+    return 'triad';
   }
 
-  // For jazzy mood, use more extensions
+  // For jazzy mood, use more complex voicings
   if (mood === 'jazzy') {
-    const extensions = ['seventh', 'ninth', 'eleventh', 'thirteenth'];
-    return extensions[Math.floor(Math.random() * extensions.length)];
+    const options = ['seventh', 'ninth', 'eleventh', 'thirteenth', 'maj7', 'min7'];
+    return options[Math.floor(Math.random() * options.length)];
   }
 
-  // For dark/tense moods, prefer seventh and ninth
+  // For dark/tense moods, use diminished and altered chords
   if (mood === 'dark' || mood === 'tense') {
-    return Math.random() < 0.5 ? 'seventh' : 'ninth';
+    const options = ['seventh', 'ninth', 'diminished', 'min7', 'augmented'];
+    return options[Math.floor(Math.random() * options.length)];
   }
 
-  // Default distribution for other moods
-  const rand = Math.random();
-  if (rand < 0.4) return 'triad';
-  if (rand < 0.7) return 'seventh';
-  if (rand < 0.9) return 'ninth';
-  return 'eleventh';
+  // For happy/calm moods, use major 7ths and suspended chords
+  if (mood === 'happy' || mood === 'calm') {
+    const options = ['triad', 'seventh', 'maj7', 'sus2', 'sus4', 'ninth'];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+
+  // Default distribution for sad mood
+  const options = ['triad', 'seventh', 'min7', 'ninth', 'eleventh'];
+  return options[Math.floor(Math.random() * options.length)];
 }
 
 /**
@@ -222,6 +270,52 @@ function calculateTotalDistance(chord1, chord2) {
 }
 
 /**
+ * Creates irregular chord changes - distributes chords with varying durations
+ * @param {Object[]} chords - Array of chord objects
+ * @param {number} totalBars - Total number of bars to fill
+ * @returns {Object[]} Array of chord objects with duration property
+ */
+function createIrregularChordChanges(chords, totalBars) {
+  const totalBeats = totalBars * 4; // 4 beats per bar
+
+  // All possible beat durations (1 to 8 beats)
+  const allDurations = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  const result = [];
+  let currentBeat = 0;
+  let chordIndex = 0;
+
+  while (currentBeat < totalBeats) {
+    const remainingBeats = totalBeats - currentBeat;
+
+    // If we've used all chords, cycle back to the beginning
+    if (chordIndex >= chords.length) {
+      chordIndex = 0;
+    }
+
+    // Choose a random duration that fits within remaining beats
+    let validDurations = allDurations.filter(d => d <= remainingBeats);
+
+    // If no valid durations (shouldn't happen), use remaining beats
+    if (validDurations.length === 0) {
+      validDurations = [remainingBeats];
+    }
+
+    const duration = validDurations[Math.floor(Math.random() * validDurations.length)];
+
+    result.push({
+      ...chords[chordIndex],
+      durationInBeats: duration
+    });
+
+    currentBeat += duration;
+    chordIndex++;
+  }
+
+  return result;
+}
+
+/**
  * Gets the chord name from scale and degree
  * @param {number[]} scale - Scale notes
  * @param {number} degree - Scale degree
@@ -282,10 +376,19 @@ function generateChords(params) {
   });
 
   // 5. Apply voice leading if enabled
-  const finalChords = params.voiceLeading ? applyVoiceLeading(chords) : chords;
+  let finalChords = params.voiceLeading ? applyVoiceLeading(chords) : chords;
 
-  // 6. Apply rhythm pattern
-  const midiNotes = applyRhythm(finalChords, params.rhythm, params.bars);
+  // 6. Apply irregular chord changes if enabled
+  if (params.irregularChanges) {
+    finalChords = createIrregularChordChanges(finalChords, params.bars);
+  }
+
+  // 7. Apply rhythm pattern
+  const bassOptions = {
+    addBass: params.addBass || false,
+    bassOctave: params.bassOctave || 2
+  };
+  const midiNotes = applyRhythm(finalChords, params.rhythm, params.bars, params.irregularChanges, bassOptions);
 
   // 7. Generate chord names string for preview
   const chordNames = chords.map(c => c.name).join(' → ');

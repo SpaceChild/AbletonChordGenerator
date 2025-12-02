@@ -65,33 +65,128 @@ function generateRandomPattern() {
  * @param {Object[]} chordProgression - Array of chord objects with notes
  * @param {string} rhythmPattern - Pattern name
  * @param {number} bars - Number of bars
+ * @param {boolean} irregularChanges - Whether chords have irregular durations
+ * @param {Object} bassOptions - Bass note options {addBass: boolean, bassOctave: number}
  * @returns {Object[]} Array of MIDI note objects
  */
-function applyRhythm(chordProgression, rhythmPattern, bars) {
+function applyRhythm(chordProgression, rhythmPattern, bars, irregularChanges = false, bassOptions = {}) {
   const notes = [];
 
-  chordProgression.forEach((chord, barIndex) => {
-    // Get the pattern for this rhythm
-    const pattern = rhythmPattern === 'random'
-      ? generateRandomPattern()
-      : RHYTHM_PATTERNS[rhythmPattern];
+  if (irregularChanges) {
+    // Handle irregular chord changes - each chord has a durationInBeats property
+    let currentBeat = 0;
 
-    if (!pattern) {
-      throw new Error(`Unknown rhythm pattern: ${rhythmPattern}`);
-    }
+    chordProgression.forEach(chord => {
+      const chordDuration = chord.durationInBeats || 4; // Default to 1 bar if not set
 
-    // Apply pattern to each chord
-    pattern.forEach(timing => {
-      chord.notes.forEach(midiNote => {
-        notes.push({
-          pitch: midiNote,
-          start_time: (barIndex * 4.0) + timing.start,  // 4 beats per bar
-          duration: timing.duration,
-          velocity: 80 + Math.floor(Math.random() * 20)  // Velocity 80-100 (some variation)
+      // Get the pattern for this rhythm
+      const pattern = rhythmPattern === 'random'
+        ? generateRandomPattern()
+        : RHYTHM_PATTERNS[rhythmPattern];
+
+      if (!pattern) {
+        throw new Error(`Unknown rhythm pattern: ${rhythmPattern}`);
+      }
+
+      // Calculate how many times the pattern fits in the chord duration
+      const patternRepeats = Math.floor(chordDuration / 4);
+      const remainingBeats = chordDuration % 4;
+
+      // Apply full pattern repeats
+      for (let rep = 0; rep < patternRepeats; rep++) {
+        pattern.forEach(timing => {
+          // Add chord notes
+          chord.notes.forEach(midiNote => {
+            notes.push({
+              pitch: midiNote,
+              start_time: currentBeat + (rep * 4.0) + timing.start,
+              duration: timing.duration,
+              velocity: 80 + Math.floor(Math.random() * 20)
+            });
+          });
+
+          // Add bass note if enabled
+          if (bassOptions.addBass && chord.notes.length > 0) {
+            const rootNote = chord.notes[0]; // First note is the root
+            const bassNote = rootNote - (12 * (bassOptions.bassOctave || 2));
+            notes.push({
+              pitch: bassNote,
+              start_time: currentBeat + (rep * 4.0) + timing.start,
+              duration: timing.duration,
+              velocity: 85 + Math.floor(Math.random() * 15) // Slightly louder bass
+            });
+          }
         });
+      }
+
+      // Handle remaining beats if any (e.g., for 2-beat chords)
+      if (remainingBeats > 0) {
+        const partialPattern = pattern.filter(t => t.start < remainingBeats);
+        partialPattern.forEach(timing => {
+          // Add chord notes
+          chord.notes.forEach(midiNote => {
+            notes.push({
+              pitch: midiNote,
+              start_time: currentBeat + (patternRepeats * 4.0) + timing.start,
+              duration: Math.min(timing.duration, remainingBeats - timing.start),
+              velocity: 80 + Math.floor(Math.random() * 20)
+            });
+          });
+
+          // Add bass note if enabled
+          if (bassOptions.addBass && chord.notes.length > 0) {
+            const rootNote = chord.notes[0];
+            const bassNote = rootNote - (12 * (bassOptions.bassOctave || 2));
+            notes.push({
+              pitch: bassNote,
+              start_time: currentBeat + (patternRepeats * 4.0) + timing.start,
+              duration: Math.min(timing.duration, remainingBeats - timing.start),
+              velocity: 85 + Math.floor(Math.random() * 15)
+            });
+          }
+        });
+      }
+
+      currentBeat += chordDuration;
+    });
+  } else {
+    // Regular chord changes - one chord per bar
+    chordProgression.forEach((chord, barIndex) => {
+      // Get the pattern for this rhythm
+      const pattern = rhythmPattern === 'random'
+        ? generateRandomPattern()
+        : RHYTHM_PATTERNS[rhythmPattern];
+
+      if (!pattern) {
+        throw new Error(`Unknown rhythm pattern: ${rhythmPattern}`);
+      }
+
+      // Apply pattern to each chord
+      pattern.forEach(timing => {
+        // Add chord notes
+        chord.notes.forEach(midiNote => {
+          notes.push({
+            pitch: midiNote,
+            start_time: (barIndex * 4.0) + timing.start,  // 4 beats per bar
+            duration: timing.duration,
+            velocity: 80 + Math.floor(Math.random() * 20)  // Velocity 80-100 (some variation)
+          });
+        });
+
+        // Add bass note if enabled
+        if (bassOptions.addBass && chord.notes.length > 0) {
+          const rootNote = chord.notes[0]; // First note is the root
+          const bassNote = rootNote - (12 * (bassOptions.bassOctave || 2));
+          notes.push({
+            pitch: bassNote,
+            start_time: (barIndex * 4.0) + timing.start,
+            duration: timing.duration,
+            velocity: 85 + Math.floor(Math.random() * 15) // Slightly louder bass
+          });
+        }
       });
     });
-  });
+  }
 
   return notes;
 }

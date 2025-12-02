@@ -103,6 +103,34 @@
                     <small>Minimiert Notenabstände zwischen Akkorden für einheitlicheres Klangbild</small>
                 </div>
 
+                <!-- Irregular Chord Changes -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="irregularChanges" name="irregularChanges">
+                        <span>Unregelmäßige Akkordwechsel</span>
+                    </label>
+                    <small>Akkordwechsel variieren anstatt in jedem Takt</small>
+                </div>
+
+                <!-- Bass Note Option -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="addBass" name="addBass">
+                        <span>Bass-Grundton hinzufügen</span>
+                    </label>
+                    <small>Fügt den Grundton des Akkords als Bass-Note hinzu</small>
+                </div>
+
+                <!-- Bass Octave Offset (only visible when addBass is checked) -->
+                <div class="form-group" id="bassOctaveGroup" style="display: none;">
+                    <label for="bassOctave">Bass-Oktave</label>
+                    <select id="bassOctave" name="bassOctave">
+                        <option value="1">-1 Oktave (tiefer)</option>
+                        <option value="2" selected>-2 Oktaven (sehr tief)</option>
+                    </select>
+                    <small>Wie viele Oktaven unter dem Akkord</small>
+                </div>
+
                 <!-- Target Track -->
                 <div class="form-group">
                     <label for="targetTrack">Ziel-Spur (Target Track)</label>

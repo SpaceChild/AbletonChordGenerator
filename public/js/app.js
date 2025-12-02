@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('chordForm');
     const previewBtn = document.getElementById('previewBtn');
     const bpmInput = document.getElementById('bpm');
+    const addBassCheckbox = document.getElementById('addBass');
+    const bassOctaveGroup = document.getElementById('bassOctaveGroup');
 
     // Initialize
     console.log('🎹 Ableton Chord Generator initialized');
@@ -11,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // BPM display update
     bpmInput.addEventListener('input', (e) => {
         updateBPMDisplay(e.target.value);
+    });
+
+    // Bass checkbox toggle
+    addBassCheckbox.addEventListener('change', (e) => {
+        bassOctaveGroup.style.display = e.target.checked ? 'block' : 'none';
     });
 
     // Preview button handler

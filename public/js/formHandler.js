@@ -16,6 +16,9 @@ function getFormData() {
         bpm: parseInt(formData.get('bpm')),
         rhythm: formData.get('rhythm'),
         voiceLeading: document.getElementById('voiceLeading').checked,
+        irregularChanges: document.getElementById('irregularChanges').checked,
+        addBass: document.getElementById('addBass').checked,
+        bassOctave: parseInt(formData.get('bassOctave')),
         targetTrack: parseInt(formData.get('targetTrack')),
         targetSlot: parseInt(formData.get('targetSlot'))
     };
