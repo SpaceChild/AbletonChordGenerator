@@ -14,3 +14,18 @@
 - ✅ die preview-funktion kann komplett ausgebaut werden. mir reicht es, die akkorde direkt zu erzeugen.
 - ✅ die tempo-einstellung kann aus dem frontend entfernt werden, da ich das tempo in ableton live selbst festlegen möchte. es soll auch kein tempo mehr an ableton geschickt werden.
 - ✅ alle einstellungen auf der oberfläche sollen im browser gespeichert werden, sodass ich beim nächsten besuch des frontends die letzten einstellungen noch gesetzt habe.
+
+
+# Version 1.1 ✅ (Erledigt)
+## Multi-Clip-Erzeugung
+- ✅ jetzt soll nicht nur ein midi-clip erzeugt werden, sondern mehrere clips:
+    - ✅ im definierten track und slot soll weiterhin die akkordfolge so wie bisher erzeugt werden
+    - ✅ im slot direkt darunter (also im gleichen track) soll eine weitere akkord-folge erzeugt werden, die in der parallel-tonart der ursprünglich gewählten gebildet werden soll. diese akkordfolge soll komplementär zu der ersten sein. etwa so, wie der refrain der strophe gegenübersteht. beide akkord-folgen sollen sich hintereinander gespielt gut anhören, also gut ineinander überleiten.
+    - ✅ im frontend soll sich dazu nichts ändern, der zweite slot ist immer abhängig vom slot der ersten akkord-folge
+    - ✅ alle anderen parameter wie voice-leading, unregelmäßige akkordwechsel und bass-grundton sollen ebenso auf die zweite folge angewendet werden
+    - ✅ einzig die stimmung könnte die gegenteilige sein wie in der ersten. für fröhlich und traurig gibt es ja die gegensätze, für die anderen weiß ich nicht, wie man die gegensätze musikalisch umsetzen könnte. denk dir was aus!
+
+## Implementierte komplementäre Paare:
+- Happy ↔ Sad
+- Dark ↔ Calm
+- Jazzy ↔ Tense

@@ -26,6 +26,7 @@ Eine Web-Anwendung zur algorithmischen Generierung von Akkordprogressionen, die 
 - **Oktav-Auswahl**: Wählbar zwischen -1 oder -2 Oktaven
 
 ### Integration & Workflow
+- **Dual-Clip-Generierung**: Erstellt automatisch 2 komplementäre Clips (Original + Variation)
 - **Direkte Ableton-Integration**: MIDI-Clips werden automatisch in Session View erstellt
 - **Auto Clip Deletion**: Vorherige Clips werden automatisch überschrieben
 - **Persistente Einstellungen**: Alle Formularwerte werden im Browser gespeichert
@@ -106,7 +107,9 @@ Der Server läuft auf [http://localhost:3000](http://localhost:3000)
      - **Bass-Oktave**: -1 oder -2 Oktaven unter dem Akkord
    - **Ziel-Spur (Track)**: 0-basiert (0 = erster Track)
    - **Ziel-Slot**: Clip-Slot-Position (0-basiert)
-4. **"Generate in Ableton" klicken** (Cmd+Enter) → Clip erscheint in Session View
+4. **"Generate in Ableton" klicken** (Cmd+Enter) → 2 Clips erscheinen in Session View:
+   - **Clip 1 (Original-Slot)**: Deine gewählte Akkordfolge
+   - **Clip 2 (Slot +1)**: Komplementäre Variation in Paralleltonart
 5. **Tempo in Ableton Live festlegen** – Der Generator übernimmt das aktuelle Projekt-Tempo
 
 ## 🎵 Musiktheorie
@@ -150,6 +153,16 @@ Statt eines Akkords pro Takt können Akkorde variabel lang sein:
   - Alle Akkorde aus der Progression werden verwendet
   - Bei Bedarf wiederholt sich die Progression
 - **Vorteil**: Natürlicherer, weniger mechanischer Fluss
+
+### Dual-Clip-Generierung
+
+Der Generator erstellt automatisch zwei komplementäre Akkordfolgen:
+- **Clip 1 (Original)**: Verwendet deine gewählten Parameter (Key, Scale, Mood)
+- **Clip 2 (Komplementär)**: Variation mit:
+  - **Paralleltonart**: Major → Relative Minor (-3 Halbtöne), Minor → Relative Major (+3 Halbtöne)
+  - **Komplementäre Stimmung**: Happy ↔ Sad, Dark ↔ Calm, Jazzy ↔ Tense
+  - **Alle anderen Parameter identisch**: Voice Leading, Irregular Changes, Bass Notes werden übernommen
+- **Musikalischer Effekt**: Die beiden Clips klingen gut hintereinander und eignen sich für Strophe/Refrain-Strukturen
 
 ## ⚙️ Technische Details
 
@@ -222,7 +235,14 @@ AbletonChordGenerator/
 
 ## 📋 Version History
 
-### Version 1.03 (Aktuelle Version)
+### Version 1.1 (Aktuelle Version)
+- ✅ Dual-Clip-Generierung: Erstellt automatisch 2 komplementäre Akkordfolgen
+- ✅ Paralleltonart-Logik: Major ↔ Minor (Relative Key Transformation)
+- ✅ Komplementäre Stimmungen: Happy ↔ Sad, Dark ↔ Calm, Jazzy ↔ Tense
+- ✅ Beide Clips in aufeinanderfolgenden Slots auf dem gleichen Track
+- ✅ Alle Parameter (Voice Leading, Irregular Changes, Bass) werden auf beide Clips angewendet
+
+### Version 1.03
 - ✅ Preview-Funktion entfernt (direkte Generierung)
 - ✅ BPM/Tempo-Einstellung entfernt (verwendet Ableton-Projekt-Tempo)
 - ✅ LocalStorage: Alle Einstellungen werden im Browser persistent gespeichert

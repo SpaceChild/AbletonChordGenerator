@@ -1,4 +1,4 @@
-const { NOTE_TO_MIDI, NOTE_NAMES } = require('../utils/musicTheory');
+const { NOTE_TO_MIDI, NOTE_NAMES, getRelativeKey, getComplementaryMood } = require('../utils/musicTheory');
 const { buildScale } = require('./scaleBuilder');
 const { selectProgression, expandProgression } = require('./moodMapper');
 const { applyRhythm } = require('./rhythmGenerator');
@@ -380,8 +380,56 @@ function generateChords(params) {
   };
 }
 
+/**
+ * Generates two complementary chord progressions:
+ * 1. Original progression with original parameters
+ * 2. Complementary progression in relative key with complementary mood
+ *
+ * @param {Object} params - Generation parameters
+ * @returns {Object} { clip1: {...}, clip2: {...} }
+ */
+function generateDualClips(params) {
+  // Generate first clip with original parameters
+  const clip1 = generateChords(params);
+
+  // Calculate relative key and complementary mood for second clip
+  const relativeKey = getRelativeKey(params.key, params.scale);
+  const complementaryMood = getComplementaryMood(params.mood);
+
+  // Generate second clip with complementary parameters
+  const clip2Params = {
+    ...params,
+    key: relativeKey.key,
+    scale: relativeKey.scale,
+    mood: complementaryMood
+  };
+
+  const clip2 = generateChords(clip2Params);
+
+  return {
+    clip1: {
+      ...clip1,
+      metadata: {
+        ...clip1.metadata,
+        clipType: 'original'
+      }
+    },
+    clip2: {
+      ...clip2,
+      metadata: {
+        ...clip2.metadata,
+        clipType: 'complementary',
+        originalKey: params.key,
+        originalScale: params.scale,
+        originalMood: params.mood
+      }
+    }
+  };
+}
+
 module.exports = {
   generateChords,
+  generateDualClips,
   buildChordFromDegree,
   getChordName
 };

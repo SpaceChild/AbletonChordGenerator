@@ -9,13 +9,19 @@ from config import ABLETON_HOST, ABLETON_PORT
 def send_to_ableton(data):
     """
     Main entry point for sending MIDI data to Ableton
+    Supports both single clip and dual clip generation
 
     Args:
-        data: Dictionary containing:
+        data: Dictionary containing either:
+            Single clip mode:
             - notes: List of note dicts (pitch, start_time, duration, velocity)
             - track: Track index (int)
             - slot: Clip slot index (int)
             - clipLength: Length in bars (int)
+
+            Dual clip mode:
+            - clip1: Dictionary with notes, track, slot, clipLength
+            - clip2: Dictionary with notes, track, slot, clipLength
 
     Returns:
         dict: Result with success status and message
@@ -26,25 +32,68 @@ def send_to_ableton(data):
 
         print(f"Connecting to Ableton at {ABLETON_HOST}:{ABLETON_PORT}", file=sys.stderr)
 
-        # Create clip and add notes
-        success, clip_slot_index = create_clip_with_notes(
-            client,
-            track_index=data['track'],
-            clip_slot_index=data['slot'],
-            clip_length=data['clipLength'],
-            notes=data['notes']
-        )
+        # Check if this is dual clip mode
+        if 'clip1' in data and 'clip2' in data:
+            print("Dual clip mode detected", file=sys.stderr)
 
-        if success:
+            # Create first clip (original)
+            print(f"Creating clip 1 (original)...", file=sys.stderr)
+            success1, slot1 = create_clip_with_notes(
+                client,
+                track_index=data['clip1']['track'],
+                clip_slot_index=data['clip1']['slot'],
+                clip_length=data['clip1']['clipLength'],
+                notes=data['clip1']['notes']
+            )
+
+            if not success1:
+                return {
+                    'success': False,
+                    'error': 'Failed to create first clip in Ableton'
+                }
+
+            # Create second clip (complementary)
+            print(f"Creating clip 2 (complementary)...", file=sys.stderr)
+            success2, slot2 = create_clip_with_notes(
+                client,
+                track_index=data['clip2']['track'],
+                clip_slot_index=data['clip2']['slot'],
+                clip_length=data['clip2']['clipLength'],
+                notes=data['clip2']['notes']
+            )
+
+            if not success2:
+                return {
+                    'success': False,
+                    'error': 'Failed to create second clip in Ableton'
+                }
+
             return {
                 'success': True,
-                'message': f'Created clip on track {data["track"]}, slot {clip_slot_index} with {len(data["notes"])} notes'
+                'message': f'Created 2 clips: Track {data["clip1"]["track"]} slots {slot1}, {slot2} with {len(data["clip1"]["notes"])} and {len(data["clip2"]["notes"])} notes'
             }
+
         else:
-            return {
-                'success': False,
-                'error': 'Failed to create clip in Ableton'
-            }
+            # Single clip mode (backward compatibility)
+            print("Single clip mode", file=sys.stderr)
+            success, clip_slot_index = create_clip_with_notes(
+                client,
+                track_index=data['track'],
+                clip_slot_index=data['slot'],
+                clip_length=data['clipLength'],
+                notes=data['notes']
+            )
+
+            if success:
+                return {
+                    'success': True,
+                    'message': f'Created clip on track {data["track"]}, slot {clip_slot_index} with {len(data["notes"])} notes'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': 'Failed to create clip in Ableton'
+                }
 
     except Exception as e:
         print(f"Exception in send_to_ableton: {e}", file=sys.stderr)

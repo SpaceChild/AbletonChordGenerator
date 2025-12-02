@@ -36,11 +36,23 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Generate result:', result);
 
             if (result.success) {
-                showStatus(
-                    `✅ Success! Created ${result.data.noteCount} notes in Ableton on track ${params.targetTrack}. ` +
-                    `Progression: ${result.data.metadata.chordNames}`,
-                    'success'
-                );
+                // Check if dual clips were created
+                if (result.data.clip1 && result.data.clip2) {
+                    showStatus(
+                        `✅ Success! Created 2 complementary clips in Ableton:\n` +
+                        `Clip 1 (${result.data.clip1.metadata.key} ${result.data.clip1.metadata.scale}, ${result.data.clip1.metadata.mood}): ${result.data.clip1.noteCount} notes in slot ${params.targetSlot}\n` +
+                        `Clip 2 (${result.data.clip2.metadata.key} ${result.data.clip2.metadata.scale}, ${result.data.clip2.metadata.mood}): ${result.data.clip2.noteCount} notes in slot ${params.targetSlot + 1}\n` +
+                        `Track: ${params.targetTrack}`,
+                        'success'
+                    );
+                } else {
+                    // Backward compatibility for single clip
+                    showStatus(
+                        `✅ Success! Created ${result.data.noteCount} notes in Ableton on track ${params.targetTrack}. ` +
+                        `Progression: ${result.data.metadata.chordNames}`,
+                        'success'
+                    );
+                }
             } else {
                 showStatus('❌ Failed to generate chords: ' + result.error, 'error');
             }

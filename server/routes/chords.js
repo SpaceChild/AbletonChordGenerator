@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateChords } = require('../services/chordGenerator');
+const { generateDualClips } = require('../services/chordGenerator');
 const { sendToAbleton } = require('../utils/pythonBridge');
 
 /**
@@ -85,34 +85,49 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // Generate chord progression
-    console.log('Generating chords...');
-    const chordData = generateChords(params);
+    // Generate dual chord progressions
+    console.log('Generating dual chord progressions...');
+    const dualClipData = generateDualClips(params);
 
-    console.log(`Generated ${chordData.notes.length} notes`);
+    console.log(`Generated clip 1: ${dualClipData.clip1.notes.length} notes`);
+    console.log(`Generated clip 2: ${dualClipData.clip2.notes.length} notes`);
 
-    // Send to Ableton via Python
-    console.log('Sending to Ableton...');
+    // Send both clips to Ableton via Python
+    console.log('Sending both clips to Ableton...');
     const result = await sendToAbleton({
-      notes: chordData.notes,
-      track: parseInt(params.targetTrack),
-      slot: parseInt(params.targetSlot),
-      clipLength: parseInt(params.bars)
+      clip1: {
+        notes: dualClipData.clip1.notes,
+        track: parseInt(params.targetTrack),
+        slot: parseInt(params.targetSlot),
+        clipLength: parseInt(params.bars)
+      },
+      clip2: {
+        notes: dualClipData.clip2.notes,
+        track: parseInt(params.targetTrack),
+        slot: parseInt(params.targetSlot) + 1,  // Next slot below
+        clipLength: parseInt(params.bars)
+      }
     });
 
     if (result.success) {
       res.json({
         success: true,
-        message: 'Chords created in Ableton',
+        message: 'Dual clips created in Ableton',
         data: {
-          metadata: chordData.metadata,
-          noteCount: chordData.notes.length
+          clip1: {
+            metadata: dualClipData.clip1.metadata,
+            noteCount: dualClipData.clip1.notes.length
+          },
+          clip2: {
+            metadata: dualClipData.clip2.metadata,
+            noteCount: dualClipData.clip2.notes.length
+          }
         }
       });
     } else {
       res.status(500).json({
         success: false,
-        error: 'Failed to create clip in Ableton',
+        error: 'Failed to create clips in Ableton',
         details: result.error
       });
     }
