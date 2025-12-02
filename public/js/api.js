@@ -26,28 +26,6 @@ const api = {
     },
 
     /**
-     * Previews chord generation without sending to Ableton
-     * @param {Object} params - Generation parameters
-     * @returns {Promise<Object>} Preview data
-     */
-    async previewChords(params) {
-        const response = await fetch(`${API_BASE}/chords/preview`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(params)
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || error.details?.join(', ') || 'Preview failed');
-        }
-
-        return response.json();
-    },
-
-    /**
      * Health check for server
      * @returns {Promise<Object>} Health status
      */

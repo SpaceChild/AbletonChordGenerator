@@ -73,14 +73,6 @@
                     </select>
                 </div>
 
-                <!-- BPM -->
-                <div class="form-group">
-                    <label for="bpm">BPM (Tempo)</label>
-                    <div class="input-with-display">
-                        <input type="number" id="bpm" name="bpm" min="60" max="200" value="120" required>
-                        <span class="value-display" id="bpmDisplay">120</span>
-                    </div>
-                </div>
 
                 <!-- Rhythm Pattern -->
                 <div class="form-group">
@@ -147,9 +139,6 @@
 
                 <!-- Action Buttons -->
                 <div class="button-group">
-                    <button type="button" id="previewBtn" class="btn btn-secondary">
-                        👁️ Preview (Vorschau)
-                    </button>
                     <button type="submit" class="btn btn-primary">
                         🎵 Generate in Ableton
                     </button>
@@ -162,12 +151,6 @@
                     <span class="status-icon"></span>
                     <span class="status-message"></span>
                 </div>
-            </div>
-
-            <!-- Preview Display -->
-            <div id="previewBox" class="preview-box hidden">
-                <h3>Progression Preview</h3>
-                <div class="preview-content"></div>
             </div>
         </main>
 

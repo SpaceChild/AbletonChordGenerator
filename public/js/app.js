@@ -2,48 +2,19 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('chordForm');
-    const previewBtn = document.getElementById('previewBtn');
-    const bpmInput = document.getElementById('bpm');
     const addBassCheckbox = document.getElementById('addBass');
     const bassOctaveGroup = document.getElementById('bassOctaveGroup');
 
     // Initialize
     console.log('🎹 Ableton Chord Generator initialized');
 
-    // BPM display update
-    bpmInput.addEventListener('input', (e) => {
-        updateBPMDisplay(e.target.value);
-    });
+    // Load saved settings from localStorage
+    loadSettings();
 
     // Bass checkbox toggle
     addBassCheckbox.addEventListener('change', (e) => {
         bassOctaveGroup.style.display = e.target.checked ? 'block' : 'none';
-    });
-
-    // Preview button handler
-    previewBtn.addEventListener('click', async () => {
-        console.log('Preview button clicked');
-        setLoading(true);
-
-        try {
-            const params = getFormData();
-            console.log('Preview params:', params);
-
-            const result = await api.previewChords(params);
-            console.log('Preview result:', result);
-
-            if (result.success) {
-                showPreview(result);
-                showStatus('✅ Preview generated successfully!', 'success');
-            } else {
-                showStatus('❌ Preview failed: ' + result.error, 'error');
-            }
-        } catch (error) {
-            console.error('Preview error:', error);
-            showStatus('❌ Preview error: ' + error.message, 'error');
-        } finally {
-            setLoading(false);
-        }
+        saveSettings();
     });
 
     // Form submission handler (Generate in Ableton)
@@ -55,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const params = getFormData();
             console.log('Generate params:', params);
+
+            // Save settings before generating
+            saveSettings();
 
             showStatus('⏳ Generating chords and sending to Ableton...', 'success');
 
@@ -98,13 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             form.dispatchEvent(new Event('submit'));
         }
-
-        // Ctrl/Cmd + P to preview
-        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-            e.preventDefault();
-            previewBtn.click();
-        }
     });
 
-    console.log('💡 Keyboard shortcuts: Ctrl/Cmd+Enter = Generate, Ctrl/Cmd+P = Preview');
+    // Save settings whenever any form field changes
+    form.addEventListener('change', () => {
+        saveSettings();
+    });
+
+    console.log('💡 Keyboard shortcuts: Ctrl/Cmd+Enter = Generate');
 });

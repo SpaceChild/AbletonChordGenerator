@@ -8,3 +8,9 @@
 # Version 1.02
 - Bug: manchmal wird ein Takt zu wenig erzeugt. der clip hat zwar die komplette länge, jedoch ist kein akkord im letzten takt vorhanden. das sollte gefixt werden.
 - die unregelmäßigen akkordwechsel sind gut, aber zu wenig abwechslungsreich. die wechsel sollen nicht nur nach 2 oder 8 schlägen passieren, sondern eigentlich nach jeder möglichen ganzzahligen anzahl von schlägen. die akkordfolge soll am ende jedoch immer alle akkorde enthalten und die länge sollte immer die angegebene clip-länge haben. also die variation soll im rahmen der anderen parameter angewendet werden, ohne akkord-abfolge-regeln zu brechen.
+
+
+# Version 1.03 ✅ (Erledigt)
+- ✅ die preview-funktion kann komplett ausgebaut werden. mir reicht es, die akkorde direkt zu erzeugen.
+- ✅ die tempo-einstellung kann aus dem frontend entfernt werden, da ich das tempo in ableton live selbst festlegen möchte. es soll auch kein tempo mehr an ableton geschickt werden.
+- ✅ alle einstellungen auf der oberfläche sollen im browser gespeichert werden, sodass ich beim nächsten besuch des frontends die letzten einstellungen noch gesetzt habe.

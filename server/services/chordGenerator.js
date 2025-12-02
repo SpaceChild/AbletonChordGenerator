@@ -375,8 +375,7 @@ function generateChords(params) {
       mood: params.mood,
       progression: progressionDegrees,
       chordNames: chordNames,
-      bars: params.bars,
-      bpm: params.bpm
+      bars: params.bars
     }
   };
 }

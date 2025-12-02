@@ -16,7 +16,6 @@ def send_to_ableton(data):
             - track: Track index (int)
             - slot: Clip slot index (int)
             - clipLength: Length in bars (int)
-            - bpm: Tempo (int)
 
     Returns:
         dict: Result with success status and message
@@ -26,10 +25,6 @@ def send_to_ableton(data):
         client = udp_client.SimpleUDPClient(ABLETON_HOST, ABLETON_PORT)
 
         print(f"Connecting to Ableton at {ABLETON_HOST}:{ABLETON_PORT}", file=sys.stderr)
-
-        # Set BPM
-        print(f"Setting BPM to {data['bpm']}", file=sys.stderr)
-        client.send_message("/live/song/set/tempo", float(data['bpm']))
 
         # Create clip and add notes
         success, clip_slot_index = create_clip_with_notes(

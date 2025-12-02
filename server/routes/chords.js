@@ -31,10 +31,6 @@ function validateParams(params) {
     errors.push('Invalid bar count. Must be one of: ' + validBars.join(', '));
   }
 
-  if (!params.bpm || params.bpm < 60 || params.bpm > 200) {
-    errors.push('Invalid BPM. Must be between 60 and 200');
-  }
-
   if (!params.rhythm || !validRhythms.includes(params.rhythm)) {
     errors.push('Invalid rhythm. Must be one of: ' + validRhythms.join(', '));
   }
@@ -101,8 +97,7 @@ router.post('/generate', async (req, res) => {
       notes: chordData.notes,
       track: parseInt(params.targetTrack),
       slot: parseInt(params.targetSlot),
-      clipLength: parseInt(params.bars),
-      bpm: parseInt(params.bpm)
+      clipLength: parseInt(params.bars)
     });
 
     if (result.success) {
@@ -124,45 +119,6 @@ router.post('/generate', async (req, res) => {
 
   } catch (error) {
     console.error('Error in /generate:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-/**
- * POST /api/chords/preview
- * Generates chords without sending to Ableton (for preview)
- */
-router.post('/preview', (req, res) => {
-  try {
-    const params = req.body;
-
-    console.log('Received preview request:', params);
-
-    // Validate parameters
-    const validation = validateParams(params);
-    if (!validation.valid) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.errors
-      });
-    }
-
-    // Generate chord progression
-    const chordData = generateChords(params);
-
-    console.log(`Preview generated: ${chordData.notes.length} notes`);
-
-    res.json({
-      success: true,
-      data: chordData
-    });
-
-  } catch (error) {
-    console.error('Error in /preview:', error);
     res.status(500).json({
       success: false,
       error: error.message

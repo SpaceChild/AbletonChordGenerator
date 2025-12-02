@@ -28,8 +28,8 @@ Eine Web-Anwendung zur algorithmischen Generierung von Akkordprogressionen, die 
 ### Integration & Workflow
 - **Direkte Ableton-Integration**: MIDI-Clips werden automatisch in Session View erstellt
 - **Auto Clip Deletion**: Vorherige Clips werden automatisch überschrieben
-- **Preview-Funktion**: Akkordprogressionen vor dem Generieren ansehen
-- **Tastatur-Shortcuts**: Cmd+Enter für Generate, Cmd+P für Preview
+- **Persistente Einstellungen**: Alle Formularwerte werden im Browser gespeichert
+- **Tastatur-Shortcuts**: Cmd+Enter für Generate
 
 ## 🚀 Quick Start
 
@@ -94,12 +94,11 @@ Der Server läuft auf [http://localhost:3000](http://localhost:3000)
 
 1. **Ableton Live starten** und AbletonOSC aktivieren
 2. **Browser öffnen**: `http://localhost:3000`
-3. **Parameter einstellen**:
+3. **Parameter einstellen** (werden automatisch gespeichert):
    - **Tonart (Key)**: z.B. C, D, A#
    - **Skala (Scale)**: z.B. Major, Minor, Dorian
    - **Stimmung (Mood)**: z.B. Happy, Sad, Jazzy
    - **Takte (Bars)**: 4, 8, 16 oder 32
-   - **BPM**: 60-200
    - **Rhythmus**: Whole Notes, Quarters, Eighths, etc.
    - **Voice Leading** ✓: Optimiert Akkordübergänge (empfohlen)
    - **Unregelmäßige Akkordwechsel** ☐: Variable Akkordlängen für natürlicheren Fluss
@@ -107,8 +106,8 @@ Der Server läuft auf [http://localhost:3000](http://localhost:3000)
      - **Bass-Oktave**: -1 oder -2 Oktaven unter dem Akkord
    - **Ziel-Spur (Track)**: 0-basiert (0 = erster Track)
    - **Ziel-Slot**: Clip-Slot-Position (0-basiert)
-4. **"Preview" klicken** zum Testen (Cmd+P)
-5. **"Generate in Ableton" klicken** (Cmd+Enter) → Clip erscheint in Session View
+4. **"Generate in Ableton" klicken** (Cmd+Enter) → Clip erscheint in Session View
+5. **Tempo in Ableton Live festlegen** – Der Generator übernimmt das aktuelle Projekt-Tempo
 
 ## 🎵 Musiktheorie
 
@@ -220,11 +219,15 @@ AbletonChordGenerator/
 ## 📝 Tastatur-Shortcuts
 
 - **Ctrl/Cmd + Enter**: Generate in Ableton
-- **Ctrl/Cmd + P**: Preview
 
 ## 📋 Version History
 
-### Version 1.02 (Aktuelle Version)
+### Version 1.03 (Aktuelle Version)
+- ✅ Preview-Funktion entfernt (direkte Generierung)
+- ✅ BPM/Tempo-Einstellung entfernt (verwendet Ableton-Projekt-Tempo)
+- ✅ LocalStorage: Alle Einstellungen werden im Browser persistent gespeichert
+
+### Version 1.02
 - ✅ Bug Fix: Fehlende Akkorde im letzten Takt behoben
 - ✅ Erweiterte unregelmäßige Akkordwechsel (1-8 Schläge)
 - ✅ Progression-Loop bei irregular mode
