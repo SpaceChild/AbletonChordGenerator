@@ -85,17 +85,19 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // Generate dual chord progressions with bass clips
-    console.log('Generating dual chord progressions with bass clips...');
+    // Generate dual chord progressions with bass and pad clips
+    console.log('Generating dual chord progressions with bass and pad clips...');
     const dualClipData = generateDualClips(params);
 
     console.log(`Generated clip 1: ${dualClipData.clip1.notes.length} notes`);
     console.log(`Generated clip 2: ${dualClipData.clip2.notes.length} notes`);
     console.log(`Generated bass 1: ${dualClipData.bass1.notes.length} notes`);
     console.log(`Generated bass 2: ${dualClipData.bass2.notes.length} notes`);
+    console.log(`Generated pad 1: ${dualClipData.pad1.notes.length} notes`);
+    console.log(`Generated pad 2: ${dualClipData.pad2.notes.length} notes`);
 
-    // Send all 4 clips to Ableton via Python
-    console.log('Sending 4 clips to Ableton...');
+    // Send all 6 clips to Ableton via Python
+    console.log('Sending 6 clips to Ableton...');
     const result = await sendToAbleton({
       clip1: {
         notes: dualClipData.clip1.notes,
@@ -120,13 +122,25 @@ router.post('/generate', async (req, res) => {
         track: parseInt(params.targetTrack) + 1,  // Track to the right
         slot: parseInt(params.targetSlot) + 1,  // Next slot below
         clipLength: parseInt(params.bars)
+      },
+      pad1: {
+        notes: dualClipData.pad1.notes,
+        track: parseInt(params.targetTrack) + 2,  // Two tracks to the right
+        slot: parseInt(params.targetSlot),
+        clipLength: parseInt(params.bars)
+      },
+      pad2: {
+        notes: dualClipData.pad2.notes,
+        track: parseInt(params.targetTrack) + 2,  // Two tracks to the right
+        slot: parseInt(params.targetSlot) + 1,  // Next slot below
+        clipLength: parseInt(params.bars)
       }
     });
 
     if (result.success) {
       res.json({
         success: true,
-        message: '4 clips created in Ableton (2 chord + 2 bass)',
+        message: '6 clips created in Ableton (2 chord + 2 bass + 2 pad)',
         data: {
           clip1: {
             metadata: dualClipData.clip1.metadata,
@@ -143,6 +157,14 @@ router.post('/generate', async (req, res) => {
           bass2: {
             metadata: dualClipData.bass2.metadata,
             noteCount: dualClipData.bass2.notes.length
+          },
+          pad1: {
+            metadata: dualClipData.pad1.metadata,
+            noteCount: dualClipData.pad1.notes.length
+          },
+          pad2: {
+            metadata: dualClipData.pad2.metadata,
+            noteCount: dualClipData.pad2.notes.length
           }
         }
       });

@@ -10,138 +10,142 @@
     <div class="container">
         <header>
             <h1>🎹 Ableton Live Chord Generator</h1>
-            <p>Generiere algorithmische Akkordprogressionen direkt in Ableton Live 12.3</p>
+            <p>Generiere algorithmische Akkordprogressionen direkt in Ableton Live</p>
         </header>
 
         <main>
             <form id="chordForm">
-                <!-- Key Selection -->
-                <div class="form-group">
-                    <label for="key">Tonart (Key)</label>
-                    <select id="key" name="key" required>
-                        <option value="C" selected>C</option>
-                        <option value="C#">C# / Db</option>
-                        <option value="D">D</option>
-                        <option value="D#">D# / Eb</option>
-                        <option value="E">E</option>
-                        <option value="F">F</option>
-                        <option value="F#">F# / Gb</option>
-                        <option value="G">G</option>
-                        <option value="G#">G# / Ab</option>
-                        <option value="A">A</option>
-                        <option value="A#">A# / Bb</option>
-                        <option value="B">B</option>
-                    </select>
-                </div>
+                <div class="form-grid">
+                    <!-- Tonart -->
+                    <div class="form-group">
+                        <label for="key"><span class="icon">🎵</span>Tonart</label>
+                        <select id="key" name="key" required>
+                            <option value="C" selected>C</option>
+                            <option value="C#">C# / Db</option>
+                            <option value="D">D</option>
+                            <option value="D#">D# / Eb</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="F#">F# / Gb</option>
+                            <option value="G">G</option>
+                            <option value="G#">G# / Ab</option>
+                            <option value="A">A</option>
+                            <option value="A#">A# / Bb</option>
+                            <option value="B">B</option>
+                        </select>
+                    </div>
 
-                <!-- Scale/Mode Selection -->
-                <div class="form-group">
-                    <label for="scale">Modus/Skala (Scale)</label>
-                    <select id="scale" name="scale" required>
-                        <option value="Major" selected>Major (Dur)</option>
-                        <option value="Minor">Minor (Moll)</option>
-                        <option value="Dorian">Dorian</option>
-                        <option value="Phrygian">Phrygian</option>
-                        <option value="Lydian">Lydian</option>
-                        <option value="Mixolydian">Mixolydian</option>
-                        <option value="Aeolian">Aeolian</option>
-                        <option value="Locrian">Locrian</option>
-                    </select>
-                </div>
+                    <!-- Skala/Modus -->
+                    <div class="form-group">
+                        <label for="scale"><span class="icon">🎼</span>Skala / Modus</label>
+                        <select id="scale" name="scale" required>
+                            <option value="Major" selected>Dur (Major)</option>
+                            <option value="Minor">Moll (Minor)</option>
+                            <option value="Dorian">Dorisch</option>
+                            <option value="Phrygian">Phrygisch</option>
+                            <option value="Lydian">Lydisch</option>
+                            <option value="Mixolydian">Mixolydisch</option>
+                            <option value="Aeolian">Äolisch</option>
+                            <option value="Locrian">Lokrisch</option>
+                        </select>
+                    </div>
 
-                <!-- Mood Selection -->
-                <div class="form-group">
-                    <label for="mood">Stimmung (Mood)</label>
-                    <select id="mood" name="mood" required>
-                        <option value="happy" selected>Happy (Fröhlich)</option>
-                        <option value="sad">Sad (Traurig)</option>
-                        <option value="dark">Dark (Dunkel)</option>
-                        <option value="jazzy">Jazzy</option>
-                        <option value="tense">Tense (Spannend)</option>
-                        <option value="calm">Calm (Ruhig)</option>
-                    </select>
-                </div>
+                    <!-- Stimmung -->
+                    <div class="form-group">
+                        <label for="mood"><span class="icon">🎭</span>Stimmung</label>
+                        <select id="mood" name="mood" required>
+                            <option value="happy" selected>Fröhlich</option>
+                            <option value="sad">Traurig</option>
+                            <option value="dark">Dunkel</option>
+                            <option value="jazzy">Jazzig</option>
+                            <option value="tense">Spannend</option>
+                            <option value="calm">Ruhig</option>
+                        </select>
+                    </div>
 
-                <!-- Bars -->
-                <div class="form-group">
-                    <label for="bars">Anzahl Takte (Bars)</label>
-                    <select id="bars" name="bars" required>
-                        <option value="4">4</option>
-                        <option value="8" selected>8</option>
-                        <option value="16">16</option>
-                        <option value="32">32</option>
-                    </select>
-                </div>
+                    <!-- Takte -->
+                    <div class="form-group">
+                        <label for="bars"><span class="icon">📊</span>Anzahl Takte</label>
+                        <select id="bars" name="bars" required>
+                            <option value="4">4 Takte</option>
+                            <option value="8" selected>8 Takte</option>
+                            <option value="16">16 Takte</option>
+                            <option value="32">32 Takte</option>
+                        </select>
+                    </div>
 
+                    <!-- Rhythmus-Pattern -->
+                    <div class="form-group">
+                        <label for="rhythm"><span class="icon">🥁</span>Rhythmus-Pattern</label>
+                        <select id="rhythm" name="rhythm" required>
+                            <option value="whole">Ganze Noten</option>
+                            <option value="half">Halbe Noten</option>
+                            <option value="quarters" selected>Viertel Noten</option>
+                            <option value="eighths">Achtel Noten</option>
+                            <option value="random">Zufällig</option>
+                        </select>
+                    </div>
 
-                <!-- Rhythm Pattern -->
-                <div class="form-group">
-                    <label for="rhythm">Rhythmus-Pattern</label>
-                    <select id="rhythm" name="rhythm" required>
-                        <option value="whole">Whole Notes (Ganze Noten)</option>
-                        <option value="half">Half Notes (Halbe Noten)</option>
-                        <option value="quarters" selected>Quarter Notes (Viertel)</option>
-                        <option value="eighths">Eighth Notes (Achtel)</option>
-                        <option value="random">Random (Zufällig)</option>
-                    </select>
-                </div>
+                    <!-- Ziel-Spur -->
+                    <div class="form-group">
+                        <label for="targetTrack"><span class="icon">🎚️</span>Ziel-Spur</label>
+                        <input type="number" id="targetTrack" name="targetTrack" min="0" max="127" value="0" required>
+                        <small>Erster Track = 0</small>
+                    </div>
 
-                <!-- Voice Leading Option -->
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="voiceLeading" name="voiceLeading" checked>
-                        <span>Voice Leading (Noten angleichen)</span>
-                    </label>
-                    <small>Minimiert Notenabstände zwischen Akkorden für einheitlicheres Klangbild</small>
-                </div>
+                    <!-- Clip-Slot -->
+                    <div class="form-group">
+                        <label for="targetSlot"><span class="icon">📍</span>Clip-Slot</label>
+                        <input type="number" id="targetSlot" name="targetSlot" min="0" max="127" value="0" required>
+                        <small>Erste Szene = 0</small>
+                    </div>
 
-                <!-- Irregular Chord Changes -->
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="irregularChanges" name="irregularChanges">
-                        <span>Unregelmäßige Akkordwechsel</span>
-                    </label>
-                    <small>Akkordwechsel variieren anstatt in jedem Takt</small>
-                </div>
+                    <!-- Bass-Oktave -->
+                    <div class="form-group">
+                        <label for="bassOctave"><span class="icon">🔊</span>Bass-Oktave</label>
+                        <select id="bassOctave" name="bassOctave">
+                            <option value="1">-1 Oktave</option>
+                            <option value="2" selected>-2 Oktaven</option>
+                        </select>
+                        <small>Oktave unter den Akkorden</small>
+                    </div>
 
-                <!-- Bass Note Option -->
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="addBass" name="addBass">
-                        <span>Bass-Grundton hinzufügen</span>
-                    </label>
-                    <small>Fügt den Grundton des Akkords als Bass-Note hinzu</small>
-                </div>
+                    <!-- Trennlinie -->
+                    <div class="section-divider"></div>
 
-                <!-- Bass Octave Offset (only visible when addBass is checked) -->
-                <div class="form-group" id="bassOctaveGroup" style="display: none;">
-                    <label for="bassOctave">Bass-Oktave</label>
-                    <select id="bassOctave" name="bassOctave">
-                        <option value="1">-1 Oktave (tiefer)</option>
-                        <option value="2" selected>-2 Oktaven (sehr tief)</option>
-                    </select>
-                    <small>Wie viele Oktaven unter dem Akkord</small>
-                </div>
+                    <!-- Voice Leading -->
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="voiceLeading" name="voiceLeading" checked>
+                            <span>🎯 Stimmführung (Voice Leading)</span>
+                        </label>
+                        <small>Minimiert Notenabstände zwischen Akkorden</small>
+                    </div>
 
-                <!-- Target Track -->
-                <div class="form-group">
-                    <label for="targetTrack">Ziel-Spur (Target Track)</label>
-                    <input type="number" id="targetTrack" name="targetTrack" min="0" max="127" value="0" required>
-                    <small>Track-Nummer in Ableton (0-basiert, 0 = erster Track)</small>
-                </div>
+                    <!-- Unregelmäßige Akkordwechsel -->
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="irregularChanges" name="irregularChanges">
+                            <span>🔀 Unregelmäßige Akkordwechsel</span>
+                        </label>
+                        <small>Variierende Akkordlängen</small>
+                    </div>
 
-                <!-- Target Clip Slot -->
-                <div class="form-group">
-                    <label for="targetSlot">Clip-Slot (Szene)</label>
-                    <input type="number" id="targetSlot" name="targetSlot" min="0" max="127" value="0" required>
-                    <small>Slot-Nummer (0-basiert, 0 = erster Slot). Überschreibt bestehende Clips.</small>
-                </div>
+                    <!-- Bass hinzufügen -->
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="addBass" name="addBass">
+                            <span>🎸 Bass-Grundton hinzufügen</span>
+                        </label>
+                        <small>Fügt Bass-Note zum Akkord hinzu</small>
+                    </div>
 
-                <!-- Action Buttons -->
-                <div class="button-group">
-                    <button type="submit" class="btn btn-primary">
-                        🎵 Generate in Ableton
-                    </button>
+                    <!-- Generate Button -->
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">
+                            🎵 In Ableton erzeugen
+                        </button>
+                    </div>
                 </div>
             </form>
 
@@ -155,8 +159,8 @@
         </main>
 
         <footer>
-            <p>Ableton Live 12.3 Chord Generator | Algorithmic Music Theory | No AI</p>
-            <p class="hint">💡 Tipp: Stelle sicher, dass Ableton Live läuft und AbletonOSC aktiviert ist</p>
+            <p>Ableton Live Chord Generator | Algorithmische Musiktheorie</p>
+            <p class="hint">💡 Stelle sicher, dass Ableton Live läuft und AbletonOSC aktiviert ist</p>
         </footer>
     </div>
 

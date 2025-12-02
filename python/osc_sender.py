@@ -9,7 +9,7 @@ from config import ABLETON_HOST, ABLETON_PORT
 def send_to_ableton(data):
     """
     Main entry point for sending MIDI data to Ableton
-    Supports single clip, dual clip, and quad clip (4-clip) generation
+    Supports single clip, dual clip, quad clip (4-clip), and 6-clip generation
 
     Args:
         data: Dictionary containing either:
@@ -29,6 +29,14 @@ def send_to_ableton(data):
             - bass1: Dictionary with notes, track, slot, clipLength
             - bass2: Dictionary with notes, track, slot, clipLength
 
+            6-clip mode:
+            - clip1: Dictionary with notes, track, slot, clipLength
+            - clip2: Dictionary with notes, track, slot, clipLength
+            - bass1: Dictionary with notes, track, slot, clipLength
+            - bass2: Dictionary with notes, track, slot, clipLength
+            - pad1: Dictionary with notes, track, slot, clipLength
+            - pad2: Dictionary with notes, track, slot, clipLength
+
     Returns:
         dict: Result with success status and message
     """
@@ -38,8 +46,113 @@ def send_to_ableton(data):
 
         print(f"Connecting to Ableton at {ABLETON_HOST}:{ABLETON_PORT}", file=sys.stderr)
 
-        # Check if this is quad clip mode (4 clips)
-        if 'clip1' in data and 'clip2' in data and 'bass1' in data and 'bass2' in data:
+        # Check if this is 6-clip mode (2 chord + 2 bass + 2 pad)
+        if 'clip1' in data and 'clip2' in data and 'bass1' in data and 'bass2' in data and 'pad1' in data and 'pad2' in data:
+            print("6-clip mode detected (2 chord + 2 bass + 2 pad)", file=sys.stderr)
+
+            # Create first clip (original chords)
+            print(f"Creating clip 1 (original chords)...", file=sys.stderr)
+            success1, slot1 = create_clip_with_notes(
+                client,
+                track_index=data['clip1']['track'],
+                clip_slot_index=data['clip1']['slot'],
+                clip_length=data['clip1']['clipLength'],
+                notes=data['clip1']['notes']
+            )
+
+            if not success1:
+                return {
+                    'success': False,
+                    'error': 'Failed to create first clip in Ableton'
+                }
+
+            # Create second clip (complementary chords)
+            print(f"Creating clip 2 (complementary chords)...", file=sys.stderr)
+            success2, slot2 = create_clip_with_notes(
+                client,
+                track_index=data['clip2']['track'],
+                clip_slot_index=data['clip2']['slot'],
+                clip_length=data['clip2']['clipLength'],
+                notes=data['clip2']['notes']
+            )
+
+            if not success2:
+                return {
+                    'success': False,
+                    'error': 'Failed to create second clip in Ableton'
+                }
+
+            # Create first bass clip (sustained bass from clip 1)
+            print(f"Creating bass 1 (sustained bass from clip 1)...", file=sys.stderr)
+            success3, slot3 = create_clip_with_notes(
+                client,
+                track_index=data['bass1']['track'],
+                clip_slot_index=data['bass1']['slot'],
+                clip_length=data['bass1']['clipLength'],
+                notes=data['bass1']['notes']
+            )
+
+            if not success3:
+                return {
+                    'success': False,
+                    'error': 'Failed to create first bass clip in Ableton'
+                }
+
+            # Create second bass clip (sustained bass from clip 2)
+            print(f"Creating bass 2 (sustained bass from clip 2)...", file=sys.stderr)
+            success4, slot4 = create_clip_with_notes(
+                client,
+                track_index=data['bass2']['track'],
+                clip_slot_index=data['bass2']['slot'],
+                clip_length=data['bass2']['clipLength'],
+                notes=data['bass2']['notes']
+            )
+
+            if not success4:
+                return {
+                    'success': False,
+                    'error': 'Failed to create second bass clip in Ableton'
+                }
+
+            # Create first pad clip (floating pad from clip 1)
+            print(f"Creating pad 1 (floating pad from clip 1)...", file=sys.stderr)
+            success5, slot5 = create_clip_with_notes(
+                client,
+                track_index=data['pad1']['track'],
+                clip_slot_index=data['pad1']['slot'],
+                clip_length=data['pad1']['clipLength'],
+                notes=data['pad1']['notes']
+            )
+
+            if not success5:
+                return {
+                    'success': False,
+                    'error': 'Failed to create first pad clip in Ableton'
+                }
+
+            # Create second pad clip (floating pad from clip 2)
+            print(f"Creating pad 2 (floating pad from clip 2)...", file=sys.stderr)
+            success6, slot6 = create_clip_with_notes(
+                client,
+                track_index=data['pad2']['track'],
+                clip_slot_index=data['pad2']['slot'],
+                clip_length=data['pad2']['clipLength'],
+                notes=data['pad2']['notes']
+            )
+
+            if not success6:
+                return {
+                    'success': False,
+                    'error': 'Failed to create second pad clip in Ableton'
+                }
+
+            return {
+                'success': True,
+                'message': f'Created 6 clips: Track {data["clip1"]["track"]} slots {slot1}, {slot2} (chords), Track {data["bass1"]["track"]} slots {slot3}, {slot4} (bass), Track {data["pad1"]["track"]} slots {slot5}, {slot6} (pads)'
+            }
+
+        # Check if this is quad clip mode (4 clips) - backward compatibility
+        elif 'clip1' in data and 'clip2' in data and 'bass1' in data and 'bass2' in data:
             print("Quad clip mode detected (4 clips: 2 chord + 2 bass)", file=sys.stderr)
 
             # Create first clip (original chords)

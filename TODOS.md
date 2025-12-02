@@ -33,3 +33,15 @@
 
 # Version 1.11
 - es sollen jetzt direkt im track rechts daneben clips erstellt werden, und zwar nur mit den jeweiligen bass-grundtönen der beiden akkord-folgen im ersten track. also erster slot im zweiten track: bass-grundtöne der ersten akkord-folge; zweiter slot im zweiten track: bass-grundtöne der zweiten akkord-folge. die bass-grundtöne sollen diesmal nicht dem gewählten rhythmischen muster folgen, sondern immer durchgezogene töne sein (so lange gehalten, wie der bass-ton unverändert bleibt).
+
+
+# Version 1.12
+## das frontend soll angepasst werden:
+    - kein dark mode, sondern light mode
+    - es kann ruhig etwas mehr farbe enthalten
+    - gerne auch symbole verwenden, aber es soll nicht zu verspielt aussehen, schon noch professionell
+    - die comboboxen müssen alle gar nicht so breit sein. bitte bilde 2 spalten für die bedienelemente, sodass die meisten elemente auf der seite direkt sichtbar sind, ohne scrollen zu müssen.
+    - die labels und beschriftungen sollen nur auf deutsch beschrieben sein, ich brauche die englische bezeichnung nicht
+    
+## neues feature:
+- es sollen nun auch clips in einem weiteren track weiter rechts erzeugt werden. der dritte track soll auch die akkorde aus den jeweils ersten clips (im ersten track) enthalten, jedoch ohne die bass-spur und ohne rhythmische pattern. also die reinen akkorde sustained. zusätzlich sollen daraus aber "offene" akkorde werden, die frei und schwebend klingen. dazu sollen den akkorden noch obere noten hinzugefügt werden, die die akkorde schweben lassen. diese oberen noten sollen sich nicht so oft stark unterscheiden, sondern je nach akkord nur um 2 bis 3 noten voneinander unterscheiden, um ein konstant schwebendes gefühl zu erzeugen. der dritte track soll für ein synth pad gedacht sein, dass die anderen beiden spuren "trägt". die "offenen" akkorde mit den oberen noten müssen sich natürlich harmonisch in den jeweiligen akkord einfügen, damit es weiterhin gut klingt.

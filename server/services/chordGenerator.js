@@ -317,52 +317,222 @@ function getChordName(scale, degree) {
 }
 
 /**
- * Generates sustained bass notes from a chord progression
- * Bass notes are held for the full duration of each chord (no rhythmic pattern)
- * @param {Object[]} chords - Array of chord objects with notes and durations
+ * Extracts floating pad chords from generated clip MIDI notes with voice spreading
+ * Creates sustained, airy chords from the same chord progression as the clip
+ * Uses voice spreading (not voice leading) - chords span a large range with balanced distribution
+ * Upper voicings move smoothly (2-3 notes difference) to create a constant floating feeling
+ * @param {Object[]} midiNotes - Array of MIDI note objects from a generated clip
  * @param {number} bars - Total number of bars
- * @param {boolean} irregularChanges - Whether chords have irregular durations
- * @param {number} bassOctave - Octave offset for bass (1-3)
+ * @returns {Object[]} Array of pad MIDI notes with upper voicings
+ */
+function extractFloatingPadFromClip(midiNotes, bars) {
+  if (!midiNotes || midiNotes.length === 0) {
+    return [];
+  }
+
+  // Group notes by start_time to find all note events
+  const notesByTime = {};
+  midiNotes.forEach(note => {
+    const time = note.start_time;
+    if (!notesByTime[time]) {
+      notesByTime[time] = [];
+    }
+    notesByTime[time].push(note);
+  });
+
+  // Sort time positions
+  const timePositions = Object.keys(notesByTime).map(t => parseFloat(t)).sort((a, b) => a - b);
+
+  // Identify actual chord changes (not just rhythm repetitions)
+  // Two consecutive time positions represent the same chord if they have the same unique pitches
+  const chordChanges = [];
+  let previousChordSignature = null;
+
+  for (let i = 0; i < timePositions.length; i++) {
+    const startTime = timePositions[i];
+    const notesAtTime = notesByTime[startTime];
+
+    // Get unique pitches and sort them
+    const uniquePitches = [...new Set(notesAtTime.map(n => n.pitch))].sort((a, b) => a - b);
+
+    // Create a signature for this chord (string of all pitches)
+    const chordSignature = uniquePitches.join(',');
+
+    // Only add if this is a different chord from the previous one
+    if (chordSignature !== previousChordSignature) {
+      chordChanges.push({
+        startTime: startTime,
+        pitches: uniquePitches
+      });
+      previousChordSignature = chordSignature;
+    }
+  }
+
+  const padNotes = [];
+  let previousTopNotes = null;
+
+  // For each actual chord change (not rhythm repetitions), create a wide-spread pad voicing
+  for (let i = 0; i < chordChanges.length; i++) {
+    const chordChange = chordChanges[i];
+    const startTime = chordChange.startTime;
+    const uniquePitches = chordChange.pitches;
+
+    // Remove bass note (lowest note) to get the chord tones
+    const chordTones = uniquePitches.slice(1);
+
+    if (chordTones.length === 0) continue;
+
+    const root = uniquePitches[0]; // Keep original root for reference
+
+    // Calculate duration until next chord change or end of clip
+    let duration;
+    if (i < chordChanges.length - 1) {
+      duration = chordChanges[i + 1].startTime - startTime;
+    } else {
+      // Last chord - hold until end of clip
+      duration = (bars * 4) - startTime;
+    }
+
+    // Create wide-spread voicing across multiple octaves
+    // Use voice spreading: distribute notes across a wide range with large intervals
+
+    // LOW REGISTER: Root note in a low octave for foundation
+    const lowNote = root + 12; // 1 octave above bass register
+
+    // MID-LOW REGISTER: Use 2nd chord tone (3rd or 5th)
+    const midLowNote = chordTones[0] + 12; // 1 octave up
+
+    // MID-HIGH REGISTER: Use 3rd chord tone (5th or 7th) if available
+    const midHighNote = chordTones.length > 1 ? chordTones[1] + 24 : chordTones[0] + 24;
+
+    // HIGH REGISTER: Upper extensions (9th, 11th, 13th) for floating sound
+    // These should move smoothly between chords
+    let topNotes;
+
+    if (previousTopNotes === null) {
+      // First chord: add upper extensions spread wide
+      topNotes = [
+        root + 48 + 2,  // 9th, 4 octaves up
+        root + 48 + 5,  // 11th, 4 octaves up
+        root + 48 + 9   // 13th, 4 octaves up
+      ];
+    } else {
+      // Subsequent chords: move each top note by only 1-3 semitones
+      // to create smooth, constant floating feeling
+      const targetNotes = [
+        root + 48 + 2,  // Target 9th
+        root + 48 + 5,  // Target 11th
+        root + 48 + 9   // Target 13th
+      ];
+
+      topNotes = previousTopNotes.map((prevNote, i) => {
+        const target = targetNotes[i];
+        const diff = target - prevNote;
+
+        // Move smoothly: if difference is large, move only 1-3 semitones at a time
+        if (Math.abs(diff) <= 3) {
+          return target;
+        } else if (diff > 0) {
+          return prevNote + Math.min(3, diff);
+        } else {
+          return prevNote + Math.max(-3, diff);
+        }
+      });
+    }
+
+    previousTopNotes = topNotes;
+
+    // Combine all registers: LOW + MID-LOW + MID-HIGH + HIGH (3 top notes)
+    // This creates a wide-spread, balanced chord across ~4 octaves
+    const allPadNotes = [lowNote, midLowNote, midHighNote, ...topNotes];
+
+    // Create sustained pad notes
+    allPadNotes.forEach(pitch => {
+      padNotes.push({
+        pitch: pitch,
+        start_time: startTime,
+        duration: duration,
+        velocity: 65 // Softer velocity for pad sound
+      });
+    });
+  }
+
+  return padNotes;
+}
+
+/**
+ * Extracts sustained bass notes from generated clip MIDI notes
+ * Finds the lowest note at each actual chord change and creates sustained bass notes
+ * Ignores rhythm repetitions - only reacts to actual chord changes
+ * @param {Object[]} midiNotes - Array of MIDI note objects from a generated clip
+ * @param {number} bars - Total number of bars
  * @returns {Object[]} Array of sustained bass MIDI notes
  */
-function generateSustainedBass(chords, bars, irregularChanges = false, bassOctave = 2) {
+function extractSustainedBassFromClip(midiNotes, bars) {
+  if (!midiNotes || midiNotes.length === 0) {
+    return [];
+  }
+
+  // Group notes by start_time to find all note events
+  const notesByTime = {};
+  midiNotes.forEach(note => {
+    const time = note.start_time;
+    if (!notesByTime[time]) {
+      notesByTime[time] = [];
+    }
+    notesByTime[time].push(note);
+  });
+
+  // Sort time positions
+  const timePositions = Object.keys(notesByTime).map(t => parseFloat(t)).sort((a, b) => a - b);
+
+  // Identify actual chord changes (not just rhythm repetitions)
+  // Two consecutive time positions represent the same chord if they have the same unique pitches
+  const chordChanges = [];
+  let previousChordSignature = null;
+
+  for (let i = 0; i < timePositions.length; i++) {
+    const startTime = timePositions[i];
+    const notesAtTime = notesByTime[startTime];
+
+    // Get unique pitches and sort them
+    const uniquePitches = [...new Set(notesAtTime.map(n => n.pitch))].sort((a, b) => a - b);
+
+    // Create a signature for this chord (string of all pitches)
+    const chordSignature = uniquePitches.join(',');
+
+    // Only add if this is a different chord from the previous one
+    if (chordSignature !== previousChordSignature) {
+      chordChanges.push({
+        startTime: startTime,
+        lowestPitch: uniquePitches[0] // The bass note is the lowest pitch
+      });
+      previousChordSignature = chordSignature;
+    }
+  }
+
   const bassNotes = [];
 
-  if (irregularChanges) {
-    // Handle irregular chord changes - each chord has a durationInBeats property
-    let currentBeat = 0;
+  // For each actual chord change (not rhythm repetitions), create a sustained bass note
+  for (let i = 0; i < chordChanges.length; i++) {
+    const chordChange = chordChanges[i];
+    const startTime = chordChange.startTime;
+    const lowestPitch = chordChange.lowestPitch;
 
-    chords.forEach(chord => {
-      const chordDuration = chord.durationInBeats || 4; // Default to 1 bar if not set
+    // Calculate duration until next chord change or end of clip
+    let duration;
+    if (i < chordChanges.length - 1) {
+      duration = chordChanges[i + 1].startTime - startTime;
+    } else {
+      // Last chord - hold until end of clip
+      duration = (bars * 4) - startTime;
+    }
 
-      if (chord.notes.length > 0) {
-        const rootNote = chord.notes[0]; // First note is the root
-        const bassNote = rootNote - (12 * bassOctave);
-
-        bassNotes.push({
-          pitch: bassNote,
-          start_time: currentBeat,
-          duration: chordDuration, // Hold for full chord duration
-          velocity: 90 // Consistent velocity for sustained bass
-        });
-      }
-
-      currentBeat += chordDuration;
-    });
-  } else {
-    // Regular chord changes - one chord per bar (4 beats)
-    chords.forEach((chord, barIndex) => {
-      if (chord.notes.length > 0) {
-        const rootNote = chord.notes[0]; // First note is the root
-        const bassNote = rootNote - (12 * bassOctave);
-
-        bassNotes.push({
-          pitch: bassNote,
-          start_time: barIndex * 4.0, // 4 beats per bar
-          duration: 4.0, // Hold for full bar
-          velocity: 90 // Consistent velocity for sustained bass
-        });
-      }
+    bassNotes.push({
+      pitch: lowestPitch,
+      start_time: startTime,
+      duration: duration,
+      velocity: 90 // Consistent velocity for sustained bass
     });
   }
 
@@ -434,14 +604,16 @@ function generateChords(params) {
 }
 
 /**
- * Generates two complementary chord progressions with bass clips:
+ * Generates complementary progressions with bass and pad clips:
  * 1. Original progression with original parameters
  * 2. Complementary progression in relative key with complementary mood
  * 3. Sustained bass from first progression
  * 4. Sustained bass from second progression
+ * 5. Floating pad chords from first progression
+ * 6. Floating pad chords from second progression
  *
  * @param {Object} params - Generation parameters
- * @returns {Object} { clip1: {...}, clip2: {...}, bass1: {...}, bass2: {...} }
+ * @returns {Object} { clip1, clip2, bass1, bass2, pad1, pad2 }
  */
 function generateDualClips(params) {
   // Generate first clip with original parameters (including bass if requested)
@@ -461,51 +633,16 @@ function generateDualClips(params) {
 
   const clip2 = generateChords(clip2Params);
 
-  // Generate separate sustained bass clips
-  // We need to regenerate the chord progressions to get the chord objects with durations
-  // Use the same logic as generateChords but capture the chords before rhythm is applied
+  // Extract sustained bass notes directly from the generated clips
+  // This ensures the bass notes match exactly the bass notes in the chord clips
+  const bassNotes1 = extractSustainedBassFromClip(clip1.notes, params.bars);
+  const bassNotes2 = extractSustainedBassFromClip(clip2.notes, params.bars);
 
-  // For clip1 bass
-  const rootMidi1 = NOTE_TO_MIDI[params.key];
-  const scale1 = buildScale(rootMidi1, params.scale);
-  const progressionDegrees1 = selectProgression(params.mood);
-  const fullProgression1 = expandProgression(progressionDegrees1, params.bars, params.mood);
-  const chords1 = fullProgression1.map((degree, index) => {
-    const chordType = selectChordExtension(degree, index, fullProgression1.length, params.mood);
-    return {
-      degree,
-      notes: buildChordFromDegree(scale1, degree, chordType),
-      name: getChordName(scale1, degree),
-      extension: chordType
-    };
-  });
-  let finalChords1 = params.voiceLeading ? applyVoiceLeading(chords1) : chords1;
-  if (params.irregularChanges) {
-    finalChords1 = createIrregularChordChanges(finalChords1, params.bars);
-  }
-
-  const bassNotes1 = generateSustainedBass(finalChords1, params.bars, params.irregularChanges, params.bassOctave || 2);
-
-  // For clip2 bass
-  const rootMidi2 = NOTE_TO_MIDI[relativeKey.key];
-  const scale2 = buildScale(rootMidi2, relativeKey.scale);
-  const progressionDegrees2 = selectProgression(complementaryMood);
-  const fullProgression2 = expandProgression(progressionDegrees2, params.bars, complementaryMood);
-  const chords2 = fullProgression2.map((degree, index) => {
-    const chordType = selectChordExtension(degree, index, fullProgression2.length, complementaryMood);
-    return {
-      degree,
-      notes: buildChordFromDegree(scale2, degree, chordType),
-      name: getChordName(scale2, degree),
-      extension: chordType
-    };
-  });
-  let finalChords2 = params.voiceLeading ? applyVoiceLeading(chords2) : chords2;
-  if (params.irregularChanges) {
-    finalChords2 = createIrregularChordChanges(finalChords2, params.bars);
-  }
-
-  const bassNotes2 = generateSustainedBass(finalChords2, params.bars, params.irregularChanges, params.bassOctave || 2);
+  // Extract floating pad chords directly from the generated clips
+  // This ensures the pad chords use the SAME chord progression as the clip chords
+  // but with voice spreading, no rhythm, and floating upper voicings
+  const padNotes1 = extractFloatingPadFromClip(clip1.notes, params.bars);
+  const padNotes2 = extractFloatingPadFromClip(clip2.notes, params.bars);
 
   return {
     clip1: {
@@ -545,6 +682,26 @@ function generateDualClips(params) {
         clipType: 'sustained_bass',
         bars: params.bars,
         bassOctave: params.bassOctave || 2
+      }
+    },
+    pad1: {
+      notes: padNotes1,
+      metadata: {
+        key: params.key,
+        scale: params.scale,
+        mood: params.mood,
+        clipType: 'floating_pad',
+        bars: params.bars
+      }
+    },
+    pad2: {
+      notes: padNotes2,
+      metadata: {
+        key: relativeKey.key,
+        scale: relativeKey.scale,
+        mood: complementaryMood,
+        clipType: 'floating_pad',
+        bars: params.bars
       }
     }
   };
