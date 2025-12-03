@@ -4,6 +4,181 @@ const { selectProgression, expandProgression } = require('./moodMapper');
 const { applyRhythm } = require('./rhythmGenerator');
 
 /**
+ * Chord Change Patterns - Define when chord changes happen (in beats)
+ * Each pattern is an array of beat counts that define chord durations
+ * The sum of beats should match the total bars * 4 (beats per bar)
+ * Patterns are organized by number of chords and total bars
+ */
+const CHORD_CHANGE_PATTERNS = {
+  // 3-chord patterns
+  3: {
+    8: [  // 8 bars = 32 beats
+      [8, 12, 12],     // Long-short-short
+      [12, 12, 8],     // Short-short-long
+      [12, 8, 12],     // Balanced
+      [16, 8, 8],      // Very long start
+      [8, 8, 16],      // Building to climax
+    ],
+    16: [ // 16 bars = 64 beats
+      [24, 20, 20],    // Long intro
+      [20, 24, 20],    // Long middle
+      [20, 20, 24],    // Long outro
+      [16, 24, 24],    // Balanced growth
+      [24, 16, 24],    // Symmetric
+    ],
+    32: [ // 32 bars = 128 beats
+      [48, 40, 40],    // Extended intro
+      [40, 48, 40],    // Extended middle
+      [40, 40, 48],    // Extended outro
+      [44, 42, 42],    // Nearly balanced
+    ]
+  },
+  // 4-chord patterns
+  4: {
+    4: [  // 4 bars = 16 beats
+      [4, 4, 4, 4],    // One per bar (classic)
+      [2, 6, 4, 4],    // Quick start
+      [4, 4, 6, 2],    // Quick end
+      [6, 2, 4, 4],    // Long-short-medium-medium
+      [2, 4, 4, 6],    // Building
+    ],
+    8: [  // 8 bars = 32 beats
+      [8, 8, 8, 8],    // Two bars each (classic)
+      [4, 12, 8, 8],   // Quick start, long second
+      [12, 4, 8, 8],   // Long start
+      [8, 8, 4, 12],   // Building to end
+      [6, 10, 8, 8],   // Slightly varied
+      [8, 6, 10, 8],   // Middle emphasis
+    ],
+    16: [ // 16 bars = 64 beats
+      [16, 16, 16, 16], // Four bars each
+      [12, 20, 16, 16], // Extended second
+      [20, 12, 16, 16], // Extended first
+      [16, 16, 12, 20], // Building to climax
+      [14, 18, 16, 16], // Subtle variation
+    ],
+    32: [ // 32 bars = 128 beats
+      [32, 32, 32, 32], // Eight bars each
+      [28, 36, 32, 32], // Extended second
+      [36, 28, 32, 32], // Extended first
+      [32, 32, 28, 36], // Building ending
+    ]
+  },
+  // 5-chord patterns
+  5: {
+    8: [  // 8 bars = 32 beats
+      [4, 8, 8, 8, 4],  // Bookend pattern
+      [8, 4, 8, 8, 4],  // Quick middle
+      [4, 4, 8, 8, 8],  // Building
+      [8, 8, 8, 4, 4],  // Quick ending
+      [6, 6, 8, 6, 6],  // Balanced center
+    ],
+    16: [ // 16 bars = 64 beats
+      [12, 16, 12, 12, 12], // Extended second
+      [16, 12, 12, 12, 12], // Long intro
+      [12, 12, 12, 16, 12], // Middle emphasis
+      [12, 12, 12, 12, 16], // Building climax
+      [14, 14, 12, 12, 12], // Slight front load
+    ],
+    32: [ // 32 bars = 128 beats
+      [24, 28, 24, 26, 26], // Balanced with variation
+      [28, 24, 26, 24, 26], // Long start
+      [24, 26, 28, 24, 26], // Middle emphasis
+      [26, 26, 24, 24, 28], // Building end
+    ]
+  },
+  // 6-chord patterns
+  6: {
+    8: [  // 8 bars = 32 beats
+      [4, 4, 8, 6, 6, 4],   // Varied
+      [6, 6, 4, 4, 8, 4],   // Middle shortening
+      [4, 8, 4, 6, 6, 4],   // Early peak
+      [8, 4, 4, 4, 8, 4],   // Bookends
+      [6, 4, 6, 6, 4, 6],   // Alternating
+    ],
+    16: [ // 16 bars = 64 beats
+      [12, 12, 10, 10, 10, 10], // Front-loaded
+      [10, 10, 12, 12, 10, 10], // Middle emphasis
+      [10, 10, 10, 12, 12, 10], // Late build
+      [10, 10, 10, 10, 12, 12], // Climax ending
+      [12, 10, 10, 10, 12, 10], // Symmetric bookends
+    ],
+    32: [ // 32 bars = 128 beats
+      [20, 22, 20, 22, 22, 22], // Slight variation
+      [24, 20, 20, 22, 22, 20], // Long intro
+      [20, 20, 24, 20, 22, 22], // Middle peak
+      [20, 22, 22, 20, 20, 24], // Building to end
+    ]
+  },
+  // 7-chord patterns
+  7: {
+    8: [  // 8 bars = 32 beats
+      [6, 4, 4, 6, 4, 4, 4], // Long-short pattern
+      [4, 6, 4, 4, 6, 4, 4], // Alternating emphasis
+      [4, 4, 6, 4, 4, 6, 4], // Wave pattern
+      [4, 4, 4, 8, 4, 4, 4], // Center emphasis
+      [8, 4, 4, 4, 4, 4, 4], // Strong start
+    ],
+    16: [ // 16 bars = 64 beats
+      [10, 10, 8, 10, 8, 10, 8],  // Alternating
+      [12, 8, 8, 10, 8, 10, 8],   // Front-loaded
+      [8, 10, 8, 12, 8, 10, 8],   // Middle peak
+      [8, 8, 10, 8, 10, 8, 12],   // Building climax
+      [10, 8, 10, 8, 10, 8, 10],  // Balanced variation
+    ],
+    32: [ // 32 bars = 128 beats
+      [20, 18, 18, 20, 16, 18, 18], // Subtle variation
+      [22, 16, 18, 20, 16, 18, 18], // Strong start
+      [16, 18, 20, 22, 16, 18, 18], // Mid emphasis
+      [16, 18, 18, 16, 20, 18, 22], // Building end
+    ]
+  },
+  // 8-chord patterns
+  8: {
+    16: [ // 16 bars = 64 beats
+      [8, 8, 8, 8, 8, 8, 8, 8],     // Classic - one per 2 bars
+      [10, 6, 8, 8, 8, 8, 8, 8],    // Varied start
+      [8, 8, 10, 6, 8, 8, 8, 8],    // Mid variation
+      [8, 8, 8, 8, 10, 6, 8, 8],    // Late variation
+      [8, 8, 8, 8, 8, 8, 6, 10],    // Building end
+    ],
+    32: [ // 32 bars = 128 beats
+      [16, 16, 16, 16, 16, 16, 16, 16], // Classic - 2 bars each
+      [18, 14, 16, 16, 16, 16, 16, 16], // Slight variation
+      [16, 16, 18, 14, 16, 16, 16, 16], // Mid variation
+      [16, 16, 16, 16, 18, 14, 16, 16], // Late variation
+    ]
+  }
+};
+
+/**
+ * Selects a chord change pattern that matches the number of chords and total bars
+ * @param {number} numChords - Number of chords in the progression
+ * @param {number} totalBars - Total number of bars
+ * @returns {number[]} Array of beat durations for each chord
+ */
+function selectChordChangePattern(numChords, totalBars) {
+  // Check if we have patterns for this chord count
+  if (!CHORD_CHANGE_PATTERNS[numChords]) {
+    // Fallback: distribute evenly
+    const beatsPerChord = (totalBars * 4) / numChords;
+    return Array(numChords).fill(beatsPerChord);
+  }
+
+  // Check if we have patterns for this bar count
+  const patternsForBars = CHORD_CHANGE_PATTERNS[numChords][totalBars];
+  if (!patternsForBars || patternsForBars.length === 0) {
+    // Fallback: distribute evenly
+    const beatsPerChord = (totalBars * 4) / numChords;
+    return Array(numChords).fill(beatsPerChord);
+  }
+
+  // Select random pattern from available options
+  const randomIndex = Math.floor(Math.random() * patternsForBars.length);
+  return patternsForBars[randomIndex];
+}
+
+/**
  * Builds a chord from a scale degree
  * @param {number[]} scale - Scale notes (MIDI numbers)
  * @param {number} degree - Scale degree (1-7)
@@ -173,8 +348,8 @@ function selectChordExtension(degree, position, totalChords, mood) {
 
 /**
  * Applies voice leading to minimize note movement between chords
- * @param {Array} chords - Array of chord objects with notes
- * @returns {Array} Chords with optimized voice leading
+ * @param {Array} chords - Array of chord objects with notes and durationInBeats
+ * @returns {Array} Chords with optimized voice leading (preserving durationInBeats)
  */
 function applyVoiceLeading(chords) {
   if (chords.length === 0) return chords;
@@ -213,6 +388,7 @@ function applyVoiceLeading(chords) {
     result.push({
       ...chords[i],
       notes: bestVoicing
+      // Preserve durationInBeats and other properties from original chord
     });
   }
 
@@ -556,38 +732,42 @@ function generateChords(params) {
   // 2. Select progression based on mood
   const progressionDegrees = selectProgression(params.mood);
 
-  // 3. Expand to fill target bar count
-  const fullProgression = expandProgression(progressionDegrees, params.bars, params.mood);
+  // 3. NEW VERSION 1.2: Select chord change pattern based on progression length and total bars
+  //    This determines WHEN chords change (in beats), completely decoupled from rhythm pattern
+  const changePattern = selectChordChangePattern(progressionDegrees.length, params.bars);
 
   // 4. Build chords from degrees with automatic chord extensions
-  const chords = fullProgression.map((degree, index) => {
+  const chords = progressionDegrees.map((degree, index) => {
     // Automatically select chord extension based on degree, position, and mood
-    const chordType = selectChordExtension(degree, index, fullProgression.length, params.mood);
+    const chordType = selectChordExtension(degree, index, progressionDegrees.length, params.mood);
 
     return {
       degree,
       notes: buildChordFromDegree(scale, degree, chordType),
       name: getChordName(scale, degree),
-      extension: chordType
+      extension: chordType,
+      durationInBeats: changePattern[index] // NEW: Assign duration from change pattern
     };
   });
 
   // 5. Apply voice leading if enabled
   let finalChords = params.voiceLeading ? applyVoiceLeading(chords) : chords;
 
-  // 6. Apply irregular chord changes if enabled
-  if (params.irregularChanges) {
-    finalChords = createIrregularChordChanges(finalChords, params.bars);
-  }
+  // 6. NEW VERSION 1.2: irregularChanges option is now deprecated - patterns handle all timing
+  //    Keep the parameter for backward compatibility but don't use it
 
-  // 7. Apply rhythm pattern
+  // 7. Apply rhythm pattern (now only affects rhythmic subdivision, not chord timing)
+  // VERSION 1.2: Rhythm patterns now flow continuously across chord changes
+  // Random patterns are generated fresh for each clip, creating variation
   const bassOptions = {
     addBass: params.addBass || false,
     bassOctave: params.bassOctave || 2
   };
-  const midiNotes = applyRhythm(finalChords, params.rhythm, params.bars, params.irregularChanges, bassOptions);
 
-  // 7. Generate chord names string for preview
+  // Pass true for irregularChanges since all chords now have durationInBeats set
+  const midiNotes = applyRhythm(finalChords, params.rhythm, params.bars, true, bassOptions);
+
+  // 8. Generate chord names string for preview
   const chordNames = chords.map(c => c.name).join(' → ');
 
   return {
@@ -598,7 +778,8 @@ function generateChords(params) {
       mood: params.mood,
       progression: progressionDegrees,
       chordNames: chordNames,
-      bars: params.bars
+      bars: params.bars,
+      changePattern: changePattern // Include the pattern used for debugging
     }
   };
 }
@@ -616,6 +797,9 @@ function generateChords(params) {
  * @returns {Object} { clip1, clip2, bass1, bass2, pad1, pad2 }
  */
 function generateDualClips(params) {
+  // VERSION 1.2: Each clip gets its own random pattern (if rhythm === 'random')
+  // This creates variation between the two clips
+
   // Generate first clip with original parameters (including bass if requested)
   const clip1 = generateChords(params);
 

@@ -42,6 +42,23 @@
     - gerne auch symbole verwenden, aber es soll nicht zu verspielt aussehen, schon noch professionell
     - die comboboxen müssen alle gar nicht so breit sein. bitte bilde 2 spalten für die bedienelemente, sodass die meisten elemente auf der seite direkt sichtbar sind, ohne scrollen zu müssen.
     - die labels und beschriftungen sollen nur auf deutsch beschrieben sein, ich brauche die englische bezeichnung nicht
-    
+
 ## neues feature:
 - es sollen nun auch clips in einem weiteren track weiter rechts erzeugt werden. der dritte track soll auch die akkorde aus den jeweils ersten clips (im ersten track) enthalten, jedoch ohne die bass-spur und ohne rhythmische pattern. also die reinen akkorde sustained. zusätzlich sollen daraus aber "offene" akkorde werden, die frei und schwebend klingen. dazu sollen den akkorden noch obere noten hinzugefügt werden, die die akkorde schweben lassen. diese oberen noten sollen sich nicht so oft stark unterscheiden, sondern je nach akkord nur um 2 bis 3 noten voneinander unterscheiden, um ein konstant schwebendes gefühl zu erzeugen. der dritte track soll für ein synth pad gedacht sein, dass die anderen beiden spuren "trägt". die "offenen" akkorde mit den oberen noten müssen sich natürlich harmonisch in den jeweiligen akkord einfügen, damit es weiterhin gut klingt.
+
+
+# Version 1.2
+- die positionierung der akkorde innerhalb der akkord-folgen soll komplett überarbeitet werden.
+- das "rhythmus-pattern" sorgt ab sofort nurnoch für die rhythmische unterteilung von noten eines akkords, die sustained sind (also durchgezogen) und weiterhin nur für die akkorde des ersten tracks angewendet werden.
+- das gewählte rhythmus-pattern hat NICHTS mit den positionen der akkord-wechsel zu tun; diese sind komplett entkoppelt vom rhythmus-pattern.
+- die akkord-wechsel sollen ab sofort einem zufällig gewählten muster folgen, das gleichmäßig über den ganzen clip verteilt ist:
+    - es soll vordefinierte muster geben, die akkordwechsel über einen clip verteilen
+    - es sollte viele verschiedene muster geben, die auch musikalisch und den regeln eines professionellen arrangements folgen
+    - die muster sollen akkord-wechsel immer nach einer bestimmten anzahl von schlägen triggern, und zwar so, dass es sich insgesamt stimmig anhört
+    - ein beispiel wäre: 2-4-2 bei 8 takten, also ein wechsel nach 2 schlägen, dann nach 4 schlägen und dann wieder nach 2 (die summe muss natürlich der von mir angegebenen anzahl von takten entsprechen, in diesem fall 8)
+    - ein anderes beispiel für 16 takte: 4-2-4-2-4
+    - oder auch mal schnellere wechsel (8 takte): 2-1-2-1-1-1
+    - bitte definiere eine menge an mustern, aus denen dann zufällig gewählt wird
+    - es muss beachtet werden, dass die anzahl der akkorde aus den akkord-folgen aus den "moodProgressions" sich mit den neuen mustern decken müssen (also eine progression mit 5 akkorden sollte dann auch ein muster gewählt bekommen, dass 5 akkord-wechsel vorsieht)
+    - die akkord-wechsel-muster werden sehr früh im algorithmus bestimmt, da diese msuter sich ja auf alle 3 tracks auswirken (chords, bass, pad)
+    - ich möchte für diese muster keine auswahl im frontend haben, sondern die muster sollen zufällig passig gewählt werden und zu der vorher zufällig gewählten akkord-folge passen
